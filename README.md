@@ -1,2 +1,2 @@
-# SIRD_Model_GI
+# SIRD_Model
  SIRD disease spread model applying Genetic Improvement to diseases
