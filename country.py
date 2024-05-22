@@ -58,6 +58,7 @@ class Country:
         self.neighbours = []
         self.id = id
         self.history = np.array([y_0])
+        self.times = [0]
         
     def copy(self):
         c = Country(self.birth_rate, self.current, self.disease)
@@ -70,11 +71,13 @@ class Country:
     def add_neighbour(self, l_i_j, l_j_i, country):
         self.neighbours.append((l_i_j, l_j_i, country))
         
-    def move_i_to_j(self, i, j):
+    def move_i_to_j(self, i, j, t):
         if self.current[i] == 0:
             return
         self.current[i] -= 1 # S
         self.current[j] += 1 # I 
+        self.times.append(t)
+        self.history = np.vstack([self.history, self.get_info()])
         
     def move_to_country(self, SIRD_index, neighbour): 
         # locate neighbour 
@@ -92,10 +95,10 @@ class Country:
         I_to_D = lambda t : l3*I  
         props = np.array([S_to_I, I_to_R, R_to_S, I_to_D])
         # consequences
-        event_S_I = lambda t : self.move_i_to_j(0, 1)
-        event_I_R = lambda t : self.move_i_to_j(1, 2)
-        event_R_S = lambda t : self.move_i_to_j(2, 0)
-        event_I_D = lambda t : self.move_i_to_j(1, 3)
+        event_S_I = lambda t : self.move_i_to_j(0, 1, t)
+        event_I_R = lambda t : self.move_i_to_j(1, 2, t)
+        event_R_S = lambda t : self.move_i_to_j(2, 0, t)
+        event_I_D = lambda t : self.move_i_to_j(1, 3, t)
         
         events = np.array([event_S_I, event_I_R, event_R_S, event_I_D])
         
@@ -148,9 +151,9 @@ if __name__ == "__main__":
     d = disease(0.000005, 0.1, 0.0002, 0.0001)
     c = Country(0,1, np.array([10**5, 100, 0, 0]), d)
     c2 = Country(0,1, np.array([10**5, 0, 0, 0]), d)
-    c.add_neighbour(0.001, 0.001, c2)
-    c2.add_neighbour(0.001, 0.001, c)
-    gillespie(World([c,c2]), 0,  t_max=100, max_iter=10**6)
+    c.add_neighbour(0.05, 0.05, c2)
+    c2.add_neighbour(0.05, 0.05, c)
+    gillespie(World([c,c2]), 0,  t_max=365, max_iter=10**6)
     w = World([c,c2])
     
     
