@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from disease import disease
 from bisect import bisect_left 
+import time 
 
 # utils 
 
@@ -23,7 +24,6 @@ def fmap_vec(functions):
 def gillespie(Y0, t0, t_max=100, max_iter=10**4):
     y, t = Y0, t0
     #Y, T = np.array(Y0.get_info()), [t]
-    T = [t]
     i = 0
     while t<t_max and i <= max_iter:
         events,event_consequences = y.get_events()
@@ -34,10 +34,8 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
         event, dt = event_consequences[idx], tte[idx]
         event(t)
         t += dt    
-        T += [t]
         #Y = np.vstack([Y, y.get_info()])
         i += 1
-    return None
 
 time_to_event = lambda p: (-1/p)*np.log(np.random.random())
 
@@ -50,7 +48,7 @@ def propensities(t, y, events):
 
 class Country:
     mu = 10
-    def __init__(self, id: int, birth_rate, y_0, infection : disease): 
+    def __init__(self, id: int, birth_rate, y_0, infection : disease, plot=False): 
         # self.current = [S,I,R,D]
         self.current = y_0 
         self.disease = infection 
@@ -59,6 +57,7 @@ class Country:
         self.id = id
         self.history = np.array([y_0])
         self.times = [0]
+        self.plot = plot
         
     def copy(self):
         c = Country(self.birth_rate, self.current, self.disease)
@@ -76,34 +75,33 @@ class Country:
             return
         self.current[i] -= 1 # S
         self.current[j] += 1 # I 
-        self.times.append(t)
-        self.history = np.vstack([self.history, self.get_info()])
+        if self.plot:
+            self.times.append(t)
+            self.history = np.vstack([self.history, self.get_info()])
         
     def move_to_country(self, SIRD_index, neighbour): 
         # locate neighbour 
         l1,l2,country = self.neighbours[neighbour]
         country.current[SIRD_index] += 1
         self.current[SIRD_index] -= 1
-        
+
     
     def get_SIRD_events(self): 
         S,I,R,D = self.current
         l1,l2,l3,l4 = self.disease.get_params()
-        S_to_I = lambda t : l1*S*I 
-        I_to_R = lambda t : l2*I
-        R_to_S = lambda t : l4*R 
-        I_to_D = lambda t : l3*I  
+        S_to_I = lambda t : l1*self.get_info()[0]*self.get_info()[1] 
+        I_to_R = lambda t : l2*self.get_info()[1] 
+        R_to_S = lambda t : l4*self.get_info()[2] 
+        I_to_D = lambda t : l3*self.get_info()[1] 
         props = np.array([S_to_I, I_to_R, R_to_S, I_to_D])
         # consequences
         event_S_I = lambda t : self.move_i_to_j(0, 1, t)
         event_I_R = lambda t : self.move_i_to_j(1, 2, t)
         event_R_S = lambda t : self.move_i_to_j(2, 0, t)
         event_I_D = lambda t : self.move_i_to_j(1, 3, t)
-        
         events = np.array([event_S_I, event_I_R, event_R_S, event_I_D])
-        
         return props,events
-    
+
     def country_to_country(self): 
         # propensties
         lst = []
@@ -135,8 +133,12 @@ class Country:
 class World:
     def __init__(self, countries):
         self.countries  = countries
+        self.props = None
+        self.events = None
         
     def get_events(self):
+        if self.props is not None:
+            return self.props,self.events
         props = []
         events = []
         for c in self.countries: 
@@ -145,15 +147,20 @@ class World:
             events += list(e)
         props = np.array(props)
         events = np.array(events)
+        self.props = props 
+        self.events = events
         return props,events
     
 if __name__ == "__main__":
-    d = disease(0.000005, 0.1, 0.0002, 0.0001)
-    c = Country(0,1, np.array([10**5, 100, 0, 0]), d)
-    c2 = Country(0,1, np.array([10**5, 0, 0, 0]), d)
+    d = disease(0.0005, 1, 0.0002, 0.0001)
+    c = Country(0,1, np.array([10**4, 100, 0, 0]), d, True)
+    c2 = Country(0,1, np.array([10**4, 0, 0, 0]), d, True)
     c.add_neighbour(0.05, 0.05, c2)
     c2.add_neighbour(0.05, 0.05, c)
+    start = time.time()
     gillespie(World([c,c2]), 0,  t_max=365, max_iter=10**6)
+    end = time.time() 
+    print(end-start)
     w = World([c,c2])
     
     
