@@ -47,7 +47,7 @@ def propensities(t, y, events):
     return e_
 
 class Country:
-    mu = 10
+    mu = 1
     def __init__(self, id: int, birth_rate, y_0, infection : disease, plot=False): 
         # self.current = [S,I,R,D]
         self.current = y_0 
@@ -79,12 +79,16 @@ class Country:
             self.times.append(t)
             self.history = np.vstack([self.history, self.get_info()])
         
-    def move_to_country(self, SIRD_index, neighbour): 
+    def move_to_country(self, SIRD_index, neighbour, t):
         # locate neighbour 
+        if self.current[SIRD_index] == 0:
+            return
         l1,l2,country = self.neighbours[neighbour]
         country.current[SIRD_index] += 1
         self.current[SIRD_index] -= 1
-
+        if self.plot:
+            self.times.append(t)
+            self.history = np.vstack([self.history, self.get_info()])
     
     def get_SIRD_events(self): 
         S,I,R,D = self.current
@@ -102,20 +106,23 @@ class Country:
         events = np.array([event_S_I, event_I_R, event_R_S, event_I_D])
         return props,events
 
+    
+
     def country_to_country(self): 
         # propensties
+
         lst = []
         for l1,l2,c in self.neighbours: 
-            lst.append(lambda t : l1*self.current[0]) # S 
-            lst.append(lambda t : l1*self.current[1]/Country.mu) # I 
-            lst.append(lambda t : l1*self.current[2]) # R 
+            lst.append(lambda t : l1*self.get_info()[0]) # S 
+            lst.append(lambda t : l1*self.get_info()[1]/Country.mu) # I 
+            lst.append(lambda t : l1*self.get_info()[2]) # R 
         props = np.array(lst)
         events = []
         for i,val in enumerate(self.neighbours):
             l1,l2,c = val
-            events.append(lambda t : self.move_to_country(0, i))
-            events.append(lambda t : self.move_to_country(1, i))
-            events.append(lambda t : self.move_to_country(2, i))
+            events.append(lambda t : self.move_to_country(0, i, t))
+            events.append(lambda t : self.move_to_country(1, i, t))
+            events.append(lambda t : self.move_to_country(2, i, t))
         events = np.array(events)
         return props,events
         
@@ -126,8 +133,6 @@ class Country:
         e = np.concatenate([e1,e2])
         return p,e
     
-    def event_consequences(self): 
-        S,I,R,D = self.current
         
     
 class World:
@@ -151,17 +156,35 @@ class World:
         self.events = events
         return props,events
     
+# create grid of countries 
+
+def create_grid(disease, country_l, dimensions, plot_output=False):
+    n,m = dimensions 
+    country_grid = [[None for _ in range(m)] for _ in range(n)]
+    for i in range(n):
+        for j in range(m):
+            c = Country(i*m+j, 0, np.array([10**4, 0,0,0]), disease, plot=plot_output)
+            country_grid[i][j] = c
+    def get_neighbours(i, j): 
+        neighbours = [(i, j-1), (i, j+1),
+                      (i-1, j), (i+1,j)]
+        return [(i,j) for i,j in neighbours if 0 <= i < n and 0 <= j < m]
+    countries = []
+    for i in range(n):
+        for j in range(m):
+            countries.append(country_grid[i][j])
+            for i_n,j_n in get_neighbours(i,j):
+                country_grid[i][j].add_neighbour(country_l, country_l, country_grid[i_n][j_n])
+    return countries, country_grid
+    
 if __name__ == "__main__":
-    d = disease(0.0005, 1, 0.0002, 0.0001)
-    c = Country(0,1, np.array([10**4, 100, 0, 0]), d, True)
-    c2 = Country(0,1, np.array([10**4, 0, 0, 0]), d, True)
-    c.add_neighbour(0.05, 0.05, c2)
-    c2.add_neighbour(0.05, 0.05, c)
+    d = disease(0.0003, 1, 0.2,  0.01)
+    countries,grid = create_grid(d, 0.05, (2,2), True) 
+    countries[0].current[1] = 5
     start = time.time()
-    gillespie(World([c,c2]), 0,  t_max=365, max_iter=10**6)
+    gillespie(World(countries), 0,  t_max=365, max_iter=10**6)
     end = time.time() 
     print(end-start)
-    w = World([c,c2])
     
     
     

@@ -6,6 +6,7 @@ Created on Tue May 21 15:40:32 2024
 """
 
 
+
 class disease: 
     def __init__(self, l1,l2,l3,l4):
         # l1 : infection rate
@@ -19,3 +20,4 @@ class disease:
 
     def copy(self):
         return disease(self.l1,self.l2,self.l3,self.l4)
+    
