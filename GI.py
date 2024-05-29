@@ -14,3 +14,11 @@ class Genome(ABC):
     @abstractmethod 
     def to_phenotype(self):
         pass
+    
+    @abstractmethod 
+    def mutate(self):
+        pass 
+    
+    @abstractmethod 
+    def crossover(self, other):
+        pass

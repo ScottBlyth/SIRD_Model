@@ -135,7 +135,6 @@ class Country:
         e = np.concatenate([e1,e2])
         return p,e
     
-        
     
 class World:
     def __init__(self, countries):

@@ -5,9 +5,15 @@ Created on Tue May 21 15:40:32 2024
 @author: scott
 """
 
+from GI import Genome
+from random import random, randint
 
+def random_vec(n, i,j):
+    return [(j-i)*random()+i for _ in range(n)]
 
-class disease: 
+class disease(Genome): 
+    mutation_rate = 0.01
+    
     def __init__(self, l1,l2,l3,l4):
         # l1 : infection rate
         # l2 : recovery rate
@@ -15,9 +21,24 @@ class disease:
         # l4 : mortality rate
         self.l1,self.l2,self.l3,self.l4 = l1,l2,l3,l4 
         
+    def to_phenotype(self):
+        return self.l1,self.l2,self.l3,self.l4
+        
     def get_params(self):
         return self.l1,self.l2,self.l3,self.l4
 
     def copy(self):
         return disease(self.l1,self.l2,self.l3,self.l4)
     
+    def mutate(self): 
+        k = random_vec(4, -disease.mutation_rate,disease.mutation_rate)
+        l1,l2,l3,l4 = k
+        return disease(abs(l1),abs(l2),abs(l3),abs(l4))
+        
+    def crossover(self, other):
+        if randint(1,5) == 1:
+            return self
+        diseases = [self,other]
+        l1,l2,l3,l4 = [diseases[randint(0,1)] for i in range(4)]
+        return disease(l1,l2,l3,l4)
+
