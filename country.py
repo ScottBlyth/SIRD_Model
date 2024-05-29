@@ -106,11 +106,13 @@ class Country:
         events = np.array([event_S_I, event_I_R, event_R_S, event_I_D])
         return props,events
 
-    
-
     def country_to_country(self): 
         # propensties
-
+        def func(s, i): 
+            def func2(t): 
+                vaL = l1*self.get_info()[s]
+                return self.move_to_country(s, i, t)
+            return func2
         lst = []
         for l1,l2,c in self.neighbours: 
             lst.append(lambda t : l1*self.get_info()[0]) # S 
@@ -120,9 +122,9 @@ class Country:
         events = []
         for i,val in enumerate(self.neighbours):
             l1,l2,c = val
-            events.append(lambda t : self.move_to_country(0, i, t))
-            events.append(lambda t : self.move_to_country(1, i, t))
-            events.append(lambda t : self.move_to_country(2, i, t))
+            events.append(func(0, i))
+            events.append(func(1,i))
+            events.append(func(2,i))
         events = np.array(events)
         return props,events
         
@@ -178,11 +180,12 @@ def create_grid(disease, country_l, dimensions, plot_output=False):
     return countries, country_grid
     
 if __name__ == "__main__":
-    d = disease(0.0003, 1, 0.2,  0.01)
-    countries,grid = create_grid(d, 0.05, (2,2), True) 
+    d = disease(4*0.0003, 4*1, 4*0.2,  4*0.01)
+    countries,grid = create_grid(d, 4*0.05, (4,4), True) 
     countries[0].current[1] = 5
+    w = World(countries)
     start = time.time()
-    gillespie(World(countries), 0,  t_max=365, max_iter=10**6)
+    gillespie(w, 0,  t_max=365, max_iter=10**5)
     end = time.time() 
     print(end-start)
     
