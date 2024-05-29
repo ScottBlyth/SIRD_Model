@@ -47,7 +47,7 @@ def propensities(t, y, events):
     return e_
 
 class Country:
-    mu = 1
+    mu = 5
     def __init__(self, id: int, birth_rate, y_0, infection : disease, plot=False): 
         # self.current = [S,I,R,D]
         self.current = y_0 
@@ -180,12 +180,12 @@ def create_grid(disease, country_l, dimensions, plot_output=False):
     return countries, country_grid
     
 if __name__ == "__main__":
-    d = disease(4*0.0003, 4*1, 4*0.2,  4*0.01)
-    countries,grid = create_grid(d, 4*0.05, (4,4), True) 
-    countries[0].current[1] = 5
+    d = disease(0.0003, 1, 0.2,  0.01)
+    countries,grid = create_grid(d, 0.05, (2,2), True) 
+    grid[0][0].current[1] = 3
     w = World(countries)
     start = time.time()
-    gillespie(w, 0,  t_max=365, max_iter=10**5)
+    gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)
     end = time.time() 
     print(end-start)
     
