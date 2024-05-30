@@ -7,9 +7,11 @@ Created on Tue May 21 15:40:32 2024
 
 from GI import Genome
 from random import random, randint
+import numpy as np
+from sklearn.cluster import KMeans 
 
 def random_vec(n, i,j):
-    return [(j-i)*random()+i for _ in range(n)]
+    return np.array([(j-i)*random()+i for _ in range(n)])
 
 class disease(Genome): 
     mutation_rate = 0.01
@@ -22,7 +24,7 @@ class disease(Genome):
         self.l1,self.l2,self.l3,self.l4 = l1,l2,l3,l4 
         
     def to_phenotype(self):
-        return self.l1,self.l2,self.l3,self.l4
+        return np.array([self.l1,self.l2,self.l3,self.l4])
         
     def get_params(self):
         return self.l1,self.l2,self.l3,self.l4
@@ -32,7 +34,8 @@ class disease(Genome):
     
     def mutate(self): 
         k = random_vec(4, -disease.mutation_rate,disease.mutation_rate)
-        l1,l2,l3,l4 = k
+        new_vec = self.to_phenotype()+k
+        l1,l2,l3,l4 = new_vec
         return disease(abs(l1),abs(l2),abs(l3),abs(l4))
         
     def crossover(self, other):
@@ -41,4 +44,6 @@ class disease(Genome):
         diseases = [self,other]
         l1,l2,l3,l4 = [diseases[randint(0,1)] for i in range(4)]
         return disease(l1,l2,l3,l4)
+
+
 

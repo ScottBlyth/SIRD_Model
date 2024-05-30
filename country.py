@@ -7,8 +7,12 @@ Created on Fri May 17 11:47:01 2024
 import numpy as np
 from matplotlib import pyplot as plt
 from disease import disease
+from GI import Environment, evolve
 from bisect import bisect_left 
 import time 
+from random import random
+
+
 
 # utils 
 
@@ -135,6 +139,46 @@ class Country:
         e = np.concatenate([e1,e2])
         return p,e
     
+def random_interval(i, j):
+    return (j-i)*random()+i 
+    
+def random_vec(n, i,j):
+    return [(j-i)*random()+i for _ in range(n)]
+    
+class GridEnvironemnt(Environment): 
+    def __init__(self, country_l, dimensions):
+        self.country_l = country_l
+        self.n = dimensions 
+        self.l1_bounds = 3*10**(-3) 
+        self.l2_l3_bounds = (0.05, 0.2) 
+        self.l4_bounds = (0.001, 0.01) 
+        
+    def in_bounds(self, l1,l2,l3,l4):
+        cond1 = 0 <= l1 <= self.l1_bounds
+        cond2 = self.l2_l3_bounds[0] <= l2 <= self.l2_l3_bounds[1]
+        cond3 = self.l4_bounds[0] <= l4 <= self.l4_bounds[1]
+        return cond1 and cond2 and cond3
+    
+    def random_population(self): 
+        l1 = random_interval(0, self.l1_bounds)
+        l2 = random_interval(self.l2_l3_bounds[0], self.l2_l3_bounds[1]) 
+        l3 = random_interval(self.l2_l3_bounds[0], self.l2_l3_bounds[1]) 
+        l4 = random_interval(self.l4_bounds[0], self.l4_bounds[1])
+        return disease(l1, l2, l3, l4)
+    
+    def fitness(self, sol): 
+        l1,l2,l3,l4 = sol.to_phenotype()
+        if not self.in_bounds(l1,l2,l3,l4):
+            return 1
+        countries,grid = create_grid(sol, self.country_l, (2,2)) 
+        grid[0][0].current[1] = 5
+        w = World(countries)
+        gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)
+        print("blah")
+        num_deaths = 0 
+        for c in countries:
+            num_deaths += c.get_info()[2]
+        return 0 if num_deaths < 0 else num_deaths
     
 class World:
     def __init__(self, countries):
@@ -177,16 +221,38 @@ def create_grid(disease, country_l, dimensions, plot_output=False):
             for i_n,j_n in get_neighbours(i,j):
                 country_grid[i][j].add_neighbour(country_l, country_l, country_grid[i_n][j_n])
     return countries, country_grid
+
+def plot_grid_curves(grid, max_population): 
+    n = len(grid) 
+    names = []
+    for i in range(n):
+        for j in range(n):
+            names.append((i,j))
+            c = grid[i][j]
+            infections = [I for S,I,R,D in c.history]
+            plt.plot(c.times, infections) 
+    plt.legend(names) 
+    plt.xlim(0, 100)
+    plt.ylim(0, max_population)
+    plt.show()
     
 if __name__ == "__main__":
-    d = disease(0.0003, 1, 0.2,  0.01)
-    countries,grid = create_grid(d, 0.05, (2,2), True) 
-    grid[0][0].current[1] = 3
-    w = World(countries)
-    start = time.time()
-    gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)
-    end = time.time() 
-    print(end-start)
+    if input("do u want to run things?: ") == 'y':
+        population = []
+        env = GridEnvironemnt(0.05, 2)
+        for _ in range(2):
+            population.append(env.random_population()) 
+        best = evolve(env, population, 10)
+        
+        
+        d = disease(0.003, 1, 0.2,  0.01)
+        countries,grid = create_grid(d, 0.05, (2,2), True) 
+        grid[0][0].current[1] = 10
+        w = World(countries)
+        start = time.time()
+        #gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)
+        end = time.time() 
+        print(end-start)
     
     
     
