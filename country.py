@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from disease import disease
 from GI import Environment, evolve
+from simulated_annealing import simulated_annealing
 from bisect import bisect_left 
 import time 
 from random import random
@@ -30,7 +31,6 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
     #Y, T = np.array(Y0.get_info()), [t]
     i = 0
     events,event_consequences = y.get_events() 
-    print(len(events))
     while t<t_max and i <= max_iter:
         events,event_consequences = y.get_events()
         p = propensities(t, y, events=events)
@@ -151,9 +151,9 @@ class GridEnvironemnt(Environment):
     def __init__(self, country_l, dimensions):
         self.country_l = country_l
         self.n = dimensions 
-        self.l1_bounds = 3*10**(-3) 
-        self.l2_l3_bounds = (0.05, 0.2) 
-        self.l4_bounds = (0.001, 0.01) 
+        self.l1_bounds = 0.0005
+        self.l2_l3_bounds = (0.05, 1) 
+        self.l4_bounds = (0.001, 0.2) 
         self.cache_fitness = {}
         
     def in_bounds(self, l1,l2,l3,l4):
@@ -243,7 +243,7 @@ def plot_grid_curves(grid, max_population):
             infections = [I for S,I,R,D in c.history]
             plt.plot(c.times, infections) 
     plt.legend(names) 
-    plt.xlim(0, 100)
+    plt.xlim(0, 365*2)
     plt.ylim(0, max_population)
     plt.show()
     
@@ -251,14 +251,13 @@ if __name__ == "__main__":
     if input("do u want to run things?: ") == 'y':
         population = []
         env = GridEnvironemnt(0.05, 2)
-        for _ in range(5):
-            population.append(env.random_population()) 
-        best = evolve(env, population, 3)
+        initial = env.random_population()
+        best,plot = simulated_annealing(env, initial, 10**5, 5)
         
         
         d = disease(0.003, 1, 0.2,  0.01)
         countries,grid = create_grid(d, 0.05, (2,2), True) 
-        grid[0][0].current[1] = 10
+        grid[0][0].current[1] = 5
         w = World(countries)
         start = time.time()
         gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)

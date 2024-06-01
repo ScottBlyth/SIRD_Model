@@ -14,7 +14,7 @@ def random_vec(n, i,j):
     return np.array([(j-i)*random()+i for _ in range(n)])
 
 class disease(Genome): 
-    mutation_rate = 0.01
+    mutation_rate = 0.0001
     
     def __init__(self, l1,l2,l3,l4):
         # l1 : infection rate
