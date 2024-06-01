@@ -29,6 +29,8 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
     y, t = Y0, t0
     #Y, T = np.array(Y0.get_info()), [t]
     i = 0
+    events,event_consequences = y.get_events() 
+    print(len(events))
     while t<t_max and i <= max_iter:
         events,event_consequences = y.get_events()
         p = propensities(t, y, events=events)
@@ -152,6 +154,7 @@ class GridEnvironemnt(Environment):
         self.l1_bounds = 3*10**(-3) 
         self.l2_l3_bounds = (0.05, 0.2) 
         self.l4_bounds = (0.001, 0.01) 
+        self.cache_fitness = {}
         
     def in_bounds(self, l1,l2,l3,l4):
         cond1 = 0 <= l1 <= self.l1_bounds
@@ -166,19 +169,27 @@ class GridEnvironemnt(Environment):
         l4 = random_interval(self.l4_bounds[0], self.l4_bounds[1])
         return disease(l1, l2, l3, l4)
     
-    def fitness(self, sol): 
-        l1,l2,l3,l4 = sol.to_phenotype()
+    
+    def fitness_aux(self ,l1,l2,l3,l4): 
+        if (l1,l2,l3,l4) in self.cache_fitness:
+            return self.cache_fitness[(l1,l2,l3,l4)]
         if not self.in_bounds(l1,l2,l3,l4):
             return 1
-        countries,grid = create_grid(sol, self.country_l, (2,2)) 
+        d = disease(l1,l2,l3,l4)
+        countries,grid = create_grid(d, self.country_l, (2,2)) 
         grid[0][0].current[1] = 5
         w = World(countries)
-        gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)
-        print("blah")
+        gillespie(w, 0,  t_max=365*2, max_iter=2*10**5)
+        print("done")
         num_deaths = 0 
         for c in countries:
             num_deaths += c.get_info()[2]
+        self.cache_fitness[(l1,l2,l3,l4)] = 0 if num_deaths < 0 else num_deaths
         return 0 if num_deaths < 0 else num_deaths
+    
+    def fitness(self, sol): 
+        l1,l2,l3,l4 = sol.to_phenotype()
+        return self.fitness_aux(l1, l2, l3, l4)
     
 class World:
     def __init__(self, countries):
@@ -240,9 +251,9 @@ if __name__ == "__main__":
     if input("do u want to run things?: ") == 'y':
         population = []
         env = GridEnvironemnt(0.05, 2)
-        for _ in range(2):
+        for _ in range(5):
             population.append(env.random_population()) 
-        best = evolve(env, population, 10)
+        best = evolve(env, population, 3)
         
         
         d = disease(0.003, 1, 0.2,  0.01)
@@ -250,7 +261,7 @@ if __name__ == "__main__":
         grid[0][0].current[1] = 10
         w = World(countries)
         start = time.time()
-        #gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)
+        gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)
         end = time.time() 
         print(end-start)
     

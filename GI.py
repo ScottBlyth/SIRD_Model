@@ -39,6 +39,7 @@ def evolve(env : Environment, population, iterations):
         print("#########################################")
         # compute probability distribution 
         fitnesses = [env.fitness(sol) for sol in population]
+        probabilties = [1/(f+1) for f in fitnesses]
         probabilties = np.array(fitnesses)/sum(fitnesses)
         sol1i = np.random.choice(range(len(fitnesses)), p=probabilties)
         sol2i = np.random.choice(range(len(fitnesses)), p=probabilties)
@@ -50,12 +51,19 @@ def evolve(env : Environment, population, iterations):
         # add mutated solution
         population.append(mutated_sol)
         fitnesses.append(env.fitness(mutated_sol))
-        probabilties = fitnesses/sum(fitnesses)
+        probabilties = np.array(fitnesses)/sum(fitnesses)
         
         # pick random one to remove 
         # excluding elite solution
-        index = np.random.choice(range(1, len(fitnesses)), p=probabilties[1:])
-        population.pop(index)
+        probabilties_ = [(i, p) for i,p in enumerate(probabilties)]
+        probabilties_ = sorted(probabilties_, key=lambda x : x[1])
+        
+        
+        probabilities2 = [x[1] for x in probabilties_[1:]]
+        p2 = np.array(probabilities2)/sum(probabilities2)
+        index = np.random.choice(range(1,len(fitnesses)), p=p2)
+        index_pop = probabilties_[index][0]
+        population.pop(index_pop)
         print("iteration 1 done")
     return population
         

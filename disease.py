@@ -41,8 +41,8 @@ class disease(Genome):
     def crossover(self, other):
         if randint(1,5) == 1:
             return self
-        diseases = [self,other]
-        l1,l2,l3,l4 = [diseases[randint(0,1)] for i in range(4)]
+        diseases = [self.to_phenotype(), other.to_phenotype()]
+        l1,l2,l3,l4 = [diseases[randint(0,1)][i] for i in range(4)]
         return disease(l1,l2,l3,l4)
 
 
