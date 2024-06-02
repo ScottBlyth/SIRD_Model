@@ -30,7 +30,7 @@ def simulated_annealing(env, initial, T_0, max_iterations=10):
         if accept(T, env, current, mutated): 
             current = mutated 
         fitness_curve.append(env.fitness(current))
-        T *= (1-0.9)
+        T -= 1
         i -= 1
         
     return current,fitness_curve

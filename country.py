@@ -25,6 +25,12 @@ def fmap_vec(functions):
         return np.array(lst) 
     return wrapped_function
 
+def all_zeros(lst):
+    for val in lst:
+        if val != 0:
+            return False
+    return True
+
 # from workshop/lectures
 def gillespie(Y0, t0, t_max=100, max_iter=10**4):
     y, t = Y0, t0
@@ -34,6 +40,8 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
     while t<t_max and i <= max_iter:
         events,event_consequences = y.get_events()
         p = propensities(t, y, events=events)
+        if all_zeros(p):
+            return
         p_rel = p/sum(p)
         tte = [time_to_event(p[i]) for i in range(len(p))]
         idx = np.random.choice(range(len(p)), p=p_rel)
@@ -132,11 +140,14 @@ class Country:
             events.append(func(1,i))
             events.append(func(2,i))
         events = np.array(events)
+        
         return props,events
         
     def get_events(self): 
         p1,e1 = self.get_SIRD_events()
         p2,e2 = self.country_to_country()
+        if len(p2) == 0:
+            return p1,e1
         p = np.concatenate([p1,p2])
         e = np.concatenate([e1,e2])
         return p,e
@@ -152,7 +163,7 @@ class GridEnvironemnt(Environment):
         self.country_l = country_l
         self.n = dimensions 
         self.l1_bounds = 0.0005
-        self.l2_l3_bounds = (0.05, 1) 
+        self.l2_l3_bounds = (0.05, 0.2) 
         self.l4_bounds = (0.001, 0.2) 
         self.cache_fitness = {}
         
@@ -176,7 +187,7 @@ class GridEnvironemnt(Environment):
         if not self.in_bounds(l1,l2,l3,l4):
             return 1
         d = disease(l1,l2,l3,l4)
-        countries,grid = create_grid(d, self.country_l, (2,2)) 
+        countries,grid = create_grid(d, self.country_l, (self.n,self.n)) 
         grid[0][0].current[1] = 5
         w = World(countries)
         gillespie(w, 0,  t_max=365*2, max_iter=2*10**5)
@@ -236,6 +247,7 @@ def create_grid(disease, country_l, dimensions, plot_output=False):
 def plot_grid_curves(grid, max_population): 
     n = len(grid) 
     names = []
+    cumulative_deaths = []
     for i in range(n):
         for j in range(n):
             names.append((i,j))
@@ -250,11 +262,13 @@ def plot_grid_curves(grid, max_population):
 if __name__ == "__main__":
     if input("do u want to run things?: ") == 'y':
         population = []
-        env = GridEnvironemnt(0.05, 2)
+        env = GridEnvironemnt(0.05, 1)
         initial = env.random_population()
-        best,plot = simulated_annealing(env, initial, 10**5, 5)
+        initial.l1 = 0.0003 
+        initial.lock_l1 = True
+        best,plot = simulated_annealing(env, initial, 1000, 1000)
         
-        
+        """
         d = disease(0.003, 1, 0.2,  0.01)
         countries,grid = create_grid(d, 0.05, (2,2), True) 
         grid[0][0].current[1] = 5
@@ -263,6 +277,7 @@ if __name__ == "__main__":
         gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)
         end = time.time() 
         print(end-start)
+        """
     
     
     
