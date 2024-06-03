@@ -12,7 +12,7 @@ from simulated_annealing import simulated_annealing
 from bisect import bisect_left 
 import time 
 from random import random
-
+from data_analysis import plot_diseases
 
 
 # utils 
@@ -162,11 +162,13 @@ class GridEnvironemnt(Environment):
     def __init__(self, country_l, dimensions):
         self.country_l = country_l
         self.n = dimensions 
+
         self.l1_bounds = (0.0002, 0.0005)
-        self.l2_l3_bounds = (0, 3) 
-=======
+        self.l2_l3_bounds = (0.5, 3) 
+
         self.l1_bounds = (0.0002, 0.001)
         self.l2_l3_bounds = (0.5, 3) 
+
         self.l4_bounds = (0.001, 0.2) 
         self.cache_fitness = {}
         
@@ -305,9 +307,8 @@ if __name__ == "__main__":
             population.append(initial)
         #evolve(env : Environment, population, iterations)
         #best,plot = simulated_annealing(env, initial, 1000, 1000)
+
         population,curve = evolve(env, population, 25)
-=======
-        population,curve = evolve(env, population, 100)
         population = sorted(population, key=lambda x : -env.fitness(x))
     
         d = disease(0.0003, 1, 0.2,  0.01)
