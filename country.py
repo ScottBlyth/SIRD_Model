@@ -162,7 +162,7 @@ class GridEnvironemnt(Environment):
     def __init__(self, country_l, dimensions):
         self.country_l = country_l
         self.n = dimensions 
-        self.l1_bounds = (0.0002, 0.001)
+        self.l1_bounds = (0.0002, 0.0005)
         self.l2_l3_bounds = (0, 3) 
         self.l4_bounds = (0.001, 0.2) 
         self.cache_fitness = {}
@@ -302,7 +302,7 @@ if __name__ == "__main__":
             population.append(initial)
         #evolve(env : Environment, population, iterations)
         #best,plot = simulated_annealing(env, initial, 1000, 1000)
-        population,curve = evolve(env, population, 10)
+        population,curve = evolve(env, population, 25)
         population = sorted(population, key=lambda x : -env.fitness(x))
     
         d = disease(0.0003, 1, 0.2,  0.01)
@@ -315,7 +315,7 @@ if __name__ == "__main__":
         gillespie(w, 0,  t_max=365, max_iter=3*10**5)
         end = time.time() 
         print(end-start)
-        plot_grid_curves(grid, 40*1000)
+        plot_grid_curves(grid, 50*1000)
         
     
     

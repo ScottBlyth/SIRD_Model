@@ -9,7 +9,6 @@ from abc import ABC,abstractmethod
 import random
 import numpy as np
 import statistics as stats
-from sklearn.cluster import KMeans
 
 class Genome(ABC):
     def __init__(self):
