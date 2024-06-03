@@ -36,11 +36,9 @@ class Environment(ABC):
 
 def evolve(env : Environment, population, iterations):
     for _ in range(iterations):
-        print("#########################################")
         # compute probability distribution 
         fitnesses = [env.fitness(sol) for i,sol in enumerate(population)]
-        fitnesses = sorted(fitnesses, key=lambda x : -x[1])
-        probabilties = [1/(f+1) for i,f in fitnesses]
+        probabilties = [1/(f+1) for f in fitnesses]
         probabilties = np.array(probabilties)/sum(probabilties)
         sol1i = np.random.choice(range(len(fitnesses)), p=probabilties)
         sol2i = np.random.choice(range(len(fitnesses)), p=probabilties)
@@ -51,22 +49,21 @@ def evolve(env : Environment, population, iterations):
         
         # add mutated solution
         population.append(mutated_sol)
-        fitnesses.append((len(fitnesses), env.fitness(mutated_sol)))
-        fitnesses = sorted(fitnesses, key=lambda x : -x[1])
-        probabilties = [1/(f+1) for i,f in fitnesses]
-        probabilties = np.array(probabilties)/sum(probabilties)
+        fitnesses.append(env.fitness(mutated_sol))
+        
         
         # pick random one to remove 
         # excluding elite solution
+        fitnesses = [(i,f) for i,f in enumerate(fitnesses)]
+        fitnesses = sorted(fitnesses, key=lambda x : -x[1])
+        probabilties = [1/(f+1) for i,f in fitnesses[1:]]
+        probabilties = np.array(probabilties)/sum(probabilties)
         
-        
-        """
-        #p2 = np.array(probabilities2)/sum(probabilities2)
-        index = np.random.choice(range(1,len(fitnesses)), p=p2)
-        index_pop = probabilties_[index][0]
-        population.pop(index_pop)
-        print("iteration 1 done")
-        """
+        p = len(probabilties)
+        idx = np.random.choice(range(p), p=probabilties)
+        index = fitnesses[idx+1][0]
+        population.pop(index)
+     
     return population
         
     

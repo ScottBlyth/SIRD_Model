@@ -162,19 +162,19 @@ class GridEnvironemnt(Environment):
     def __init__(self, country_l, dimensions):
         self.country_l = country_l
         self.n = dimensions 
-        self.l1_bounds = 0.0005
-        self.l2_l3_bounds = (0.05, 0.2) 
+        self.l1_bounds = (0.0002, 0.001)
+        self.l2_l3_bounds = (0, 3) 
         self.l4_bounds = (0.001, 0.2) 
         self.cache_fitness = {}
         
     def in_bounds(self, l1,l2,l3,l4):
-        cond1 = 0 <= l1 <= self.l1_bounds
-        cond2 = self.l2_l3_bounds[0] <= l2 <= self.l2_l3_bounds[1]
+        cond1 = self.l1_bounds[0] <= l1 <= self.l1_bounds[1]
+        cond2 = self.l2_l3_bounds[0] <= l2+l3 <= self.l2_l3_bounds[1]
         cond3 = self.l4_bounds[0] <= l4 <= self.l4_bounds[1]
         return cond1 and cond2 and cond3
     
     def random_population(self): 
-        l1 = random_interval(0, self.l1_bounds)
+        l1 = random_interval(self.l1_bounds[0], self.l1_bounds[1])
         l2 = random_interval(self.l2_l3_bounds[0], self.l2_l3_bounds[1]) 
         l3 = random_interval(self.l2_l3_bounds[0], self.l2_l3_bounds[1]) 
         l4 = random_interval(self.l4_bounds[0], self.l4_bounds[1])
@@ -190,7 +190,7 @@ class GridEnvironemnt(Environment):
         countries,grid = create_grid(d, self.country_l, (self.n,self.n)) 
         grid[0][0].current[1] = 5
         w = World(countries)
-        gillespie(w, 0,  t_max=365*2, max_iter=2*10**5)
+        gillespie(w, 0,  t_max=365, max_iter=2*10**5)
         print("done")
         num_deaths = 0 
         for c in countries:
@@ -244,40 +244,76 @@ def create_grid(disease, country_l, dimensions, plot_output=False):
                 country_grid[i][j].add_neighbour(country_l, country_l, country_grid[i_n][j_n])
     return countries, country_grid
 
+
+def add_curves(curves):
+    time_steps = [] 
+    for curve in curves:
+        time_steps += [t for t,y in curve]
+    time_steps = sorted(time_steps)
+    resulting_curve = []
+    current_indices = [0 for _ in range(len(curves))]
+    for t in time_steps:
+        # find t value of 
+        sum_ = 0
+        for i,curve in enumerate(curves):
+            index = current_indices[i]
+            if index >= len(curve):
+                sum_ += curve[index-1][1]
+                break
+            sum_ += curve[index][1]
+            if curve[index][0] <= t:
+                current_indices[i] += 1
+        resulting_curve.append((t, sum_))
+    return [t for t,y in resulting_curve], [y for t,y in resulting_curve]
+    
+
 def plot_grid_curves(grid, max_population): 
     n = len(grid) 
     names = []
-    cumulative_deaths = []
+    deaths = []
+    infection_curves = []
     for i in range(n):
         for j in range(n):
             names.append((i,j))
             c = grid[i][j]
             infections = [I for S,I,R,D in c.history]
+            inf_curve = [(t, s[1]) for t,s in zip(c.times, c.history)]
+            infection_curves.append(inf_curve)
+            deaths.append([(t, s[3]) for t,s in zip(c.times, c.history)])
             plt.plot(c.times, infections) 
-    plt.legend(names) 
-    plt.xlim(0, 365*2)
+    cumulative_deaths = add_curves(deaths)
+    total_infections = add_curves(infection_curves)
+    plt.plot(cumulative_deaths[0], cumulative_deaths[1])
+    plt.plot(total_infections[0], total_infections[1])
+    plt.legend(names+["Cumulative Deaths", "Total Infections"]) 
+    plt.xlim(0, total_infections[0][-1])
     plt.ylim(0, max_population)
     plt.show()
+    return cumulative_deaths
     
 if __name__ == "__main__":
     if input("do u want to run things?: ") == 'y':
         population = []
         env = GridEnvironemnt(0.05, 1)
-        initial = env.random_population()
-        initial.l1 = 0.0003 
-        initial.lock_l1 = True
-        best,plot = simulated_annealing(env, initial, 1000, 1000)
-        
-        """
-        d = disease(0.003, 1, 0.2,  0.01)
-        countries,grid = create_grid(d, 0.05, (2,2), True) 
+        for _ in range(10):
+            initial = env.random_population()
+            population.append(initial)
+        #evolve(env : Environment, population, iterations)
+        #best,plot = simulated_annealing(env, initial, 1000, 1000)
+        population = evolve(env, population, 100)
+        population = sorted(population, key=lambda x : -env.fitness(x))
+    
+        d = disease(0.0003, 1, 0.2,  0.01)
+        best = population[0]
+        countries,grid = create_grid(best, 0.05, (2,2), True) 
         grid[0][0].current[1] = 5
         w = World(countries)
         start = time.time()
-        gillespie(w, 0,  t_max=365*2, max_iter=3*10**5)
+        gillespie(w, 0,  t_max=365, max_iter=3*10**5)
         end = time.time() 
         print(end-start)
-        """
+        plot_grid_curves(grid, 40*1000)
+        
     
     
     
