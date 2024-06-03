@@ -164,6 +164,9 @@ class GridEnvironemnt(Environment):
         self.n = dimensions 
         self.l1_bounds = (0.0002, 0.0005)
         self.l2_l3_bounds = (0, 3) 
+=======
+        self.l1_bounds = (0.0002, 0.001)
+        self.l2_l3_bounds = (0.5, 3) 
         self.l4_bounds = (0.001, 0.2) 
         self.cache_fitness = {}
         
@@ -303,6 +306,8 @@ if __name__ == "__main__":
         #evolve(env : Environment, population, iterations)
         #best,plot = simulated_annealing(env, initial, 1000, 1000)
         population,curve = evolve(env, population, 25)
+=======
+        population,curve = evolve(env, population, 100)
         population = sorted(population, key=lambda x : -env.fitness(x))
     
         d = disease(0.0003, 1, 0.2,  0.01)
