@@ -182,8 +182,6 @@ class GridEnvironemnt(Environment):
     
     
     def fitness_aux(self ,l1,l2,l3,l4): 
-        if (l1,l2,l3,l4) in self.cache_fitness:
-            return self.cache_fitness[(l1,l2,l3,l4)]
         if not self.in_bounds(l1,l2,l3,l4):
             return 1
         d = disease(l1,l2,l3,l4)
@@ -191,16 +189,18 @@ class GridEnvironemnt(Environment):
         grid[0][0].current[1] = 5
         w = World(countries)
         gillespie(w, 0,  t_max=365, max_iter=2*10**5)
-        print("done")
         num_deaths = 0 
         for c in countries:
-            num_deaths += c.get_info()[2]
+            num_deaths += c.get_info()[3]
         self.cache_fitness[(l1,l2,l3,l4)] = 0 if num_deaths < 0 else num_deaths
         return 0 if num_deaths < 0 else num_deaths
     
     def fitness(self, sol): 
+        if sol in self.cache_fitness:
+            return self.cache_fitness[sol]
         l1,l2,l3,l4 = sol.to_phenotype()
-        return self.fitness_aux(l1, l2, l3, l4)
+        self.cache_fitness[sol] = self.fitness_aux(l1, l2, l3, l4)
+        return self.cache_fitness[sol]
     
 class World:
     def __init__(self, countries):
@@ -289,7 +289,9 @@ def plot_grid_curves(grid, max_population):
     plt.xlim(0, total_infections[0][-1])
     plt.ylim(0, max_population)
     plt.show()
-    return cumulative_deaths
+    
+def get_x(lst):
+    return [i for i in range(len(lst))]
     
 if __name__ == "__main__":
     if input("do u want to run things?: ") == 'y':
@@ -300,13 +302,14 @@ if __name__ == "__main__":
             population.append(initial)
         #evolve(env : Environment, population, iterations)
         #best,plot = simulated_annealing(env, initial, 1000, 1000)
-        population = evolve(env, population, 100)
+        population,curve = evolve(env, population, 10)
         population = sorted(population, key=lambda x : -env.fitness(x))
     
         d = disease(0.0003, 1, 0.2,  0.01)
         best = population[0]
         countries,grid = create_grid(best, 0.05, (2,2), True) 
         grid[0][0].current[1] = 5
+        grid[1][1].current[0] = 20000
         w = World(countries)
         start = time.time()
         gillespie(w, 0,  t_max=365, max_iter=3*10**5)

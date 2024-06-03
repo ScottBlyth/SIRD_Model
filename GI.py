@@ -8,6 +8,8 @@ Created on Thu May 23 14:18:11 2024
 from abc import ABC,abstractmethod 
 import random
 import numpy as np
+import statistics as stats
+from sklearn.cluster import KMeans
 
 class Genome(ABC):
     def __init__(self):
@@ -35,11 +37,13 @@ class Environment(ABC):
     
 
 def evolve(env : Environment, population, iterations):
+    fitness_curve = []
     for _ in range(iterations):
         # compute probability distribution 
         fitnesses = [env.fitness(sol) for i,sol in enumerate(population)]
-        probabilties = [1/(f+1) for f in fitnesses]
-        probabilties = np.array(probabilties)/sum(probabilties)
+        # add to curve
+        fitness_curve.append(stats.mean(fitnesses)) 
+        probabilties = np.array(fitnesses)/sum(fitnesses)
         sol1i = np.random.choice(range(len(fitnesses)), p=probabilties)
         sol2i = np.random.choice(range(len(fitnesses)), p=probabilties)
         sol1 = population[sol1i] 
@@ -51,9 +55,10 @@ def evolve(env : Environment, population, iterations):
         population.append(mutated_sol)
         fitnesses.append(env.fitness(mutated_sol))
         
-        
         # pick random one to remove 
         # excluding elite solution
+        # probabilties are inversely 
+        # proportional to fitness
         fitnesses = [(i,f) for i,f in enumerate(fitnesses)]
         fitnesses = sorted(fitnesses, key=lambda x : -x[1])
         probabilties = [1/(f+1) for i,f in fitnesses[1:]]
@@ -63,7 +68,8 @@ def evolve(env : Environment, population, iterations):
         idx = np.random.choice(range(p), p=probabilties)
         index = fitnesses[idx+1][0]
         population.pop(index)
-     
-    return population
+        print("Iteration done...")
+
+    return population,fitness_curve
         
     
