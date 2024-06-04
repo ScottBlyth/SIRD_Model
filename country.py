@@ -308,7 +308,7 @@ if __name__ == "__main__":
         #evolve(env : Environment, population, iterations)
         #best,plot = simulated_annealing(env, initial, 1000, 1000)
 
-        population,curve = evolve(env, population, 25)
+        population,curve,bests = evolve(env, population, 100)
         population = sorted(population, key=lambda x : -env.fitness(x))
     
         d = disease(0.0003, 1, 0.2,  0.01)
@@ -318,7 +318,7 @@ if __name__ == "__main__":
         grid[1][1].current[0] = 20000
         w = World(countries)
         start = time.time()
-        gillespie(w, 0,  t_max=365, max_iter=3*10**5)
+        #gillespie(w, 0,  t_max=365, max_iter=3*10**5)
         end = time.time() 
         print(end-start)
         plot_grid_curves(grid, 50*1000)

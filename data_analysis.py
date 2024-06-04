@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from matplotlib import pyplot as plt 
 from disease import disease 
+import numpy as np
 
 def projection(diseases,dim):
     pca = PCA(n_components = dim) 
@@ -17,29 +18,30 @@ def projection(diseases,dim):
     pc = pca.fit_transform(x)
     return pc
 
-def plot_diseases(env, disease_lst, dim, colour): 
+def plot_diseases(env, disease_lst, dim, colours): 
     
     diseases = []
     indices = []
-    for l in disease_lst:
-        diseases += l
-        indices.append(len(diseases)-1)
+    for lst in disease_lst:
+        indices.append(len(diseases))
+        diseases += lst
     
     max_fitness = max(env.fitness(d) for d in diseases)
     min_fitness = min(env.fitness(d) for d in diseases)
     difference = max_fitness-min_fitness
-    sizes = [200*(max_fitness-env.fitness(d))/difference for d in diseases]
-    pc = projection(diseases, dim).T
+    sizes = [200*(env.fitness(d)-min_fitness)/difference for d in diseases]
+    proj = projection(diseases, dim)
+    fig = plt.figure(figsize = (10, 7))
+    ax = plt.axes(projection ="3d")
     #https://www.geeksforgeeks.org/3d-scatter-plotting-in-python-using-matplotlib/
-    
-    for i in indices:
+    for i,index in enumerate(indices):
+        next_ = indices[i+1] if i+1<len(indices) else len(diseases) 
+        pc = proj[index:next_]
         if dim == 2:
-            plt.scatter(pc[0],pc[1], sizes=sizes)
+            plt.scatter(pc[0],pc[1], sizes=sizes[index:next_])
         if dim == 3:
-            fig = plt.figure(figsize = (10, 7))
-            ax = plt.axes(projection ="3d")
-            ax.scatter3D(pc[0],pc[1], pc[2], 
-                         color=colour,sizes=sizes)
+            ax.scatter3D(pc.T[0],pc.T[1], pc.T[2], 
+                         color=colours[i],sizes=sizes[index:next_])
         
     
     
