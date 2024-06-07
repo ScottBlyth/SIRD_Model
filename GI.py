@@ -37,12 +37,15 @@ class Environment(ABC):
 
 def evolve(env : Environment, population, iterations):
     fitness_curve = []
+    average_curve = []
     best_each_iter = []
     for _ in range(iterations):
         # compute probability distribution 
         fitnesses = [env.fitness(sol) for i,sol in enumerate(population)]
         # add to curve
-        fitness_curve.append(stats.mean(fitnesses)) 
+        fitness_curve.append(max(fitnesses)) 
+        average_curve.append(stats.mean(fitnesses))
+        
         probabilties = np.array(fitnesses)/sum(fitnesses)
         sol1i = np.random.choice(range(len(fitnesses)), p=probabilties)
         sol2i = np.random.choice(range(len(fitnesses)), p=probabilties)
@@ -75,6 +78,6 @@ def evolve(env : Environment, population, iterations):
         
         print("Iteration done...")
 
-    return population,fitness_curve,best_each_iter
+    return population,fitness_curve, average_curve,best_each_iter
         
     

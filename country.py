@@ -5,11 +5,10 @@ Created on Fri May 17 11:47:01 2024
 @author: scott
 """
 import numpy as np
+import math
 from matplotlib import pyplot as plt
 from disease import disease
 from GI import Environment, evolve
-from simulated_annealing import simulated_annealing
-from bisect import bisect_left 
 import time 
 from random import random
 from data_analysis import plot_diseases
@@ -37,9 +36,10 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
     #Y, T = np.array(Y0.get_info()), [t]
     i = 0
     events,event_consequences = y.get_events() 
+    p_n = len(events)
     while t<t_max and i <= max_iter:
         events,event_consequences = y.get_events()
-        p = propensities(t, y, events=events)
+        p = propensities(t, p_n, events=events)
         if all_zeros(p):
             return
         p_rel = p/sum(p)
@@ -53,18 +53,20 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
 
 time_to_event = lambda p: (-1/p)*np.log(np.random.random())
 
-def propensities(t, y, events):
+def propensities(t, p_n, events):
     e_ = []
     for event in events:
         e = event(t=t)
-        e_.append(e)
+        e_.append(e*p_n)
     return e_
 
 class Country:
     mu = 5
+    
     def __init__(self, id: int, birth_rate, y_0, infection : disease, plot=False): 
         # self.current = [S,I,R,D]
         self.current = y_0 
+        self.total_population = sum(y_0)
         self.disease = infection 
         self.birth_rate = birth_rate
         self.neighbours = []
@@ -72,6 +74,9 @@ class Country:
         self.history = np.array([y_0])
         self.times = [0]
         self.plot = plot
+        self.closed_borders = False 
+        self.lockdown = False
+        self.lockdown_factor = 1
         
     def copy(self):
         c = Country(self.birth_rate, self.current, self.disease)
@@ -87,6 +92,10 @@ class Country:
     def move_i_to_j(self, i, j, t):
         if self.current[i] == 0:
             return
+        deaths = self.current[3] 
+        if not self.lockdown and deaths/self.total_population >= 0.1:
+            self.lockdown_factor = 0.01
+            self.lockdown = True
         self.current[i] -= 1 # S
         self.current[j] += 1 # I 
         if self.plot:
@@ -107,10 +116,10 @@ class Country:
     def get_SIRD_events(self): 
         S,I,R,D = self.current
         l1,l2,l3,l4 = self.disease.get_params()
-        S_to_I = lambda t : l1*self.get_info()[0]*self.get_info()[1] 
-        I_to_R = lambda t : l2*self.get_info()[1] 
-        R_to_S = lambda t : l4*self.get_info()[2] 
-        I_to_D = lambda t : l3*self.get_info()[1] 
+        S_to_I = lambda t : l1*self.get_info()[0]*self.get_info()[1]*self.lockdown_factor
+        I_to_R = lambda t : l2*self.get_info()[1]
+        R_to_S = lambda t : l4*self.get_info()[2]
+        I_to_D = lambda t : l3*self.get_info()[1]
         props = np.array([S_to_I, I_to_R, R_to_S, I_to_D])
         # consequences
         event_S_I = lambda t : self.move_i_to_j(0, 1, t)
@@ -163,13 +172,10 @@ class GridEnvironemnt(Environment):
         self.country_l = country_l
         self.n = dimensions 
 
-        self.l1_bounds = (0.0002, 0.0005)
-        self.l2_l3_bounds = (0.5, 3) 
+        self.l1_bounds = (0.00001, 0.00003)
+        self.l2_l3_bounds = (0.001, 0.2) 
 
-        self.l1_bounds = (0.0002, 0.001)
-        self.l2_l3_bounds = (0.5, 3) 
-
-        self.l4_bounds = (0.001, 0.2) 
+        self.l4_bounds = (0.0001, 0.02) 
         self.cache_fitness = {}
         
     def in_bounds(self, l1,l2,l3,l4):
@@ -274,11 +280,12 @@ def add_curves(curves):
 
 def plot_grid_curves(grid, max_population): 
     n = len(grid) 
+    m = len(grid[0])
     names = []
     deaths = []
     infection_curves = []
     for i in range(n):
-        for j in range(n):
+        for j in range(m):
             names.append((i,j))
             c = grid[i][j]
             infections = [I for S,I,R,D in c.history]
@@ -295,25 +302,45 @@ def plot_grid_curves(grid, max_population):
     plt.ylim(0, max_population)
     plt.show()
     
+def get_peak(curve): 
+    max = -math.inf 
+    time = 0
+    for t,v in curve: 
+        if v > max:
+            max = v 
+            time = t
+    return (time, max)
+
+def get_peak_grid(grid): 
+    n = len(grid)
+    m = len(grid[0])
+    peaks = []
+    for i in range(n):
+        for j in range(m):
+            c = grid[i][j] 
+            infections = [(t, s[1]) for t,s in zip(c.times, c.history)]
+            peaks.append(get_peak(infections))
+    return peaks
+    
+    
 def get_x(lst):
     return [i for i in range(len(lst))]
     
 if __name__ == "__main__":
     if input("do u want to run things?: ") == 'y':
         population = []
-        env = GridEnvironemnt(0.05, 1)
+        env = GridEnvironemnt(0.005, 1)
         for _ in range(10):
             initial = env.random_population()
             population.append(initial)
         #evolve(env : Environment, population, iterations)
-        #best,plot = simulated_annealing(env, initial, 1000, 1000)
 
-        population,curve,bests = evolve(env, population, 100)
+        population,curve,avg_curve,bests = evolve(env, population, 1000)
         population = sorted(population, key=lambda x : -env.fitness(x))
     
         d = disease(0.0003, 1, 0.2,  0.01)
         best = population[0]
-        countries,grid = create_grid(best, 0.05, (2,2), True) 
+        countries,grid = create_grid(best, 0.005, (2,2), True) 
         grid[0][0].current[1] = 5
         grid[1][1].current[0] = 20000
         w = World(countries)
