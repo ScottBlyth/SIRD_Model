@@ -14,15 +14,15 @@ def random_vec(n, vec):
     return np.array([2*vec[i]*random()-vec[i] for i in range(n)])
 
 class disease(Genome): 
-    mutation_rate = (0.00001, 0.0001, 0.0001, 0.001)
     
-    def __init__(self, l1,l2,l3,l4, lock_l1=False):
+    def __init__(self, l1,l2,l3,l4, mutation_rate = (0.000001, 0.00001, 0.00001, 0.00001), lock_l1=False):
         # l1 : infection rate
         # l2 : recovery rate
         # l3 : immunity 
         # l4 : mortality rate
         self.l1,self.l2,self.l3,self.l4 = l1,l2,l3,l4 
         self.lock_l1 = lock_l1
+        self.mutation_rate = mutation_rate
         
     def to_phenotype(self):
         return np.array([self.l1,self.l2,self.l3,self.l4])
@@ -34,7 +34,7 @@ class disease(Genome):
         return disease(self.l1,self.l2,self.l3,self.l4)
     
     def mutate(self): 
-        k = random_vec(4, disease.mutation_rate)
+        k = random_vec(4, self.mutation_rate)
         new_vec = self.to_phenotype()+k
         l1,l2,l3,l4 = new_vec
         if self.lock_l1:

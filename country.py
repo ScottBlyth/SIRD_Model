@@ -93,9 +93,12 @@ class Country:
         if self.current[i] == 0:
             return
         deaths = self.current[3] 
-        if not self.lockdown and deaths/self.total_population >= 0.1:
-            self.lockdown_factor = 0.01
+        if not self.lockdown and deaths/self.total_population >= 0.5:
+            self.lockdown_factor = 1
             self.lockdown = True
+        if self.current[1]/self.total_population < 0.01:
+            self.lockdown_factor = 1 
+            self.lockdown = False
         self.current[i] -= 1 # S
         self.current[j] += 1 # I 
         if self.plot:
@@ -175,7 +178,7 @@ class GridEnvironemnt(Environment):
         self.l1_bounds = (0.00001, 0.00003)
         self.l2_l3_bounds = (0.001, 0.2) 
 
-        self.l4_bounds = (0.0001, 0.02) 
+        self.l4_bounds = (0.0001, 0.0002) 
         self.cache_fitness = {}
         
     def in_bounds(self, l1,l2,l3,l4):
@@ -278,49 +281,9 @@ def add_curves(curves):
     return [t for t,y in resulting_curve], [y for t,y in resulting_curve]
     
 
-def plot_grid_curves(grid, max_population): 
-    n = len(grid) 
-    m = len(grid[0])
-    names = []
-    deaths = []
-    infection_curves = []
-    for i in range(n):
-        for j in range(m):
-            names.append((i,j))
-            c = grid[i][j]
-            infections = [I for S,I,R,D in c.history]
-            inf_curve = [(t, s[1]) for t,s in zip(c.times, c.history)]
-            infection_curves.append(inf_curve)
-            deaths.append([(t, s[3]) for t,s in zip(c.times, c.history)])
-            plt.plot(c.times, infections) 
-    cumulative_deaths = add_curves(deaths)
-    total_infections = add_curves(infection_curves)
-    plt.plot(cumulative_deaths[0], cumulative_deaths[1])
-    plt.plot(total_infections[0], total_infections[1])
-    plt.legend(names+["Cumulative Deaths", "Total Infections"]) 
-    plt.xlim(0, total_infections[0][-1])
-    plt.ylim(0, max_population)
-    plt.show()
-    
-def get_peak(curve): 
-    max = -math.inf 
-    time = 0
-    for t,v in curve: 
-        if v > max:
-            max = v 
-            time = t
-    return (time, max)
 
-def get_peak_grid(grid): 
-    n = len(grid)
-    m = len(grid[0])
-    peaks = []
-    for i in range(n):
-        for j in range(m):
-            c = grid[i][j] 
-            infections = [(t, s[1]) for t,s in zip(c.times, c.history)]
-            peaks.append(get_peak(infections))
-    return peaks
+    
+
     
     
 def get_x(lst):
@@ -328,18 +291,17 @@ def get_x(lst):
     
 if __name__ == "__main__":
     if input("do u want to run things?: ") == 'y':
-        population = []
         env = GridEnvironemnt(0.005, 1)
-        for _ in range(10):
-            initial = env.random_population()
-            population.append(initial)
+        population = [env.random_population() for _ in range(20)] 
         #evolve(env : Environment, population, iterations)
 
-        population,curve,avg_curve,bests = evolve(env, population, 1000)
+        population,curve,avg_curve,bests = evolve(env, population, 100)
         population = sorted(population, key=lambda x : -env.fitness(x))
+        
     
         d = disease(0.0003, 1, 0.2,  0.01)
         best = population[0]
+        
         countries,grid = create_grid(best, 0.005, (2,2), True) 
         grid[0][0].current[1] = 5
         grid[1][1].current[0] = 20000
@@ -348,7 +310,6 @@ if __name__ == "__main__":
         #gillespie(w, 0,  t_max=365, max_iter=3*10**5)
         end = time.time() 
         print(end-start)
-        plot_grid_curves(grid, 50*1000)
         
     
     

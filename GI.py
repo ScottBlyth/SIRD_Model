@@ -9,6 +9,9 @@ from abc import ABC,abstractmethod
 import random
 import numpy as np
 import statistics as stats
+from sklearn.cluster import KMeans
+from scipy.spatial import KDTree
+from random import random
 
 class Genome(ABC):
     def __init__(self):
@@ -34,6 +37,14 @@ class Environment(ABC):
     def fitness(self, sol)->float:
         pass 
     
+    
+def sample_point(bounds): 
+    p = []
+    for l1,l2 in bounds:
+        p.append((l2-l1)*random()+l1)
+    return p
+
+
 
 def evolve(env : Environment, population, iterations):
     fitness_curve = []
@@ -74,9 +85,6 @@ def evolve(env : Environment, population, iterations):
         idx = np.random.choice(range(p), p=probabilties)
         index = fitnesses[idx+1][0]
         population.pop(index)
-    
-        
-        print("Iteration done...")
 
     return population,fitness_curve, average_curve,best_each_iter
         
