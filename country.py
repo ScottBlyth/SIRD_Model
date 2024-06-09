@@ -63,7 +63,7 @@ def propensities(t, p_n, events):
 class Country:
     mu = 5
     
-    def __init__(self, id: int, birth_rate, y_0, infection : disease, plot=False): 
+    def __init__(self, id: int, birth_rate, y_0, infection : disease, lockdown=False, lockdown_threshold=0.1, plot=False): 
         # self.current = [S,I,R,D]
         self.current = y_0 
         self.total_population = sum(y_0)
@@ -75,8 +75,9 @@ class Country:
         self.times = [0]
         self.plot = plot
         self.closed_borders = False 
-        self.lockdown = False
+        self.lockdown = lockdown
         self.lockdown_factor = 1
+        self.lockdown_threshold = lockdown_threshold
         
     def copy(self):
         c = Country(self.birth_rate, self.current, self.disease)
@@ -93,12 +94,10 @@ class Country:
         if self.current[i] == 0:
             return
         deaths = self.current[3] 
-        if not self.lockdown and deaths/self.total_population >= 0.5:
-            self.lockdown_factor = 1
-            self.lockdown = True
-        if self.current[1]/self.total_population < 0.01:
+        if self.lockdown and self.current[1]/self.total_population >= self.lockdown_threshold:
+            self.lockdown_factor = 0.01
+        if self.lockdown and self.current[1]/self.total_population < self.lockdown_threshold:
             self.lockdown_factor = 1 
-            self.lockdown = False
         self.current[i] -= 1 # S
         self.current[j] += 1 # I 
         if self.plot:
@@ -171,12 +170,13 @@ def random_vec(n, i,j):
     return [(j-i)*random()+i for _ in range(n)]
     
 class GridEnvironemnt(Environment): 
-    def __init__(self, country_l, dimensions):
+    def __init__(self, country_l, dimensions, lockdown=False):
         self.country_l = country_l
         self.n = dimensions 
+        self.lockdown = lockdown
 
-        self.l1_bounds = (0.00001, 0.00003)
-        self.l2_l3_bounds = (0.001, 0.2) 
+        self.l1_bounds = (0.000025, 0.00003)
+        self.l2_l3_bounds = (0.01, 0.2) 
 
         self.l4_bounds = (0.0001, 0.0002) 
         self.cache_fitness = {}
@@ -199,7 +199,7 @@ class GridEnvironemnt(Environment):
         if not self.in_bounds(l1,l2,l3,l4):
             return 1
         d = disease(l1,l2,l3,l4)
-        countries,grid = create_grid(d, self.country_l, (self.n,self.n)) 
+        countries,grid = create_grid(d, self.country_l, (self.n,self.n), self.lockdown) 
         grid[0][0].current[1] = 5
         w = World(countries)
         gillespie(w, 0,  t_max=365, max_iter=2*10**5)
@@ -239,12 +239,13 @@ class World:
     
 # create grid of countries 
 
-def create_grid(disease, country_l, dimensions, plot_output=False):
+def create_grid(disease, country_l, dimensions, plot_output=False, 
+                        lockdown=False, lockdown_threshold=0.1):
     n,m = dimensions 
     country_grid = [[None for _ in range(m)] for _ in range(n)]
     for i in range(n):
         for j in range(m):
-            c = Country(i*m+j, 0, np.array([10**4, 0,0,0]), disease, plot=plot_output)
+            c = Country(i*m+j, 0, np.array([10**4, 0,0,0]), disease, plot=plot_output, lockdown=lockdown,lockdown_threshold=lockdown_threshold)
             country_grid[i][j] = c
     def get_neighbours(i, j): 
         neighbours = [(i, j-1), (i, j+1),
@@ -291,7 +292,7 @@ def get_x(lst):
     
 if __name__ == "__main__":
     if input("do u want to run things?: ") == 'y':
-        env = GridEnvironemnt(0.005, 1)
+        env = GridEnvironemnt(0.005, 1, True)
         population = [env.random_population() for _ in range(20)] 
         #evolve(env : Environment, population, iterations)
 
