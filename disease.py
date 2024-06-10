@@ -15,7 +15,7 @@ def random_vec(n, vec):
 
 class disease(Genome): 
     
-    def __init__(self, l1,l2,l3,l4, mutation_rate = (0.000001, 0.00001, 0.00001, 0.00001), lock_l1=False):
+    def __init__(self, l1,l2,l3,l4, mutation_rate = (0.00001, 0.00001, 0.00001, 0.00001), lock_l1=False):
         # l1 : infection rate
         # l2 : recovery rate
         # l3 : immunity 
@@ -42,7 +42,7 @@ class disease(Genome):
         return disease(abs(l1),abs(l2),abs(l3),abs(l4))
         
     def crossover(self, other):
-        if randint(1,5) == 1:
+        if randint(1,2) == 1:
             return self
         diseases = [self.to_phenotype(), other.to_phenotype()]
         l1,l2,l3,l4 = [diseases[randint(0,1)][i] for i in range(4)]
