@@ -63,7 +63,8 @@ def propensities(t, p_n, events):
 class Country:
     mu = 5
     
-    def __init__(self, id: int, birth_rate, y_0, infection : disease, lockdown=False, lockdown_threshold=0.1, plot=False): 
+    def __init__(self, id: int, birth_rate, y_0, infection : disease, lockdown=False, lockdown_threshold=0.1, 
+                 plot=False, lifiting_threshold=0.01): 
         # self.current = [S,I,R,D]
         self.current = y_0 
         self.total_population = sum(y_0)
@@ -78,6 +79,7 @@ class Country:
         self.lockdown = lockdown
         self.lockdown_factor = 1
         self.lockdown_threshold = lockdown_threshold
+        self.lifiting_threshold = lifiting_threshold
         
     def copy(self):
         c = Country(self.birth_rate, self.current, self.disease)
@@ -96,7 +98,7 @@ class Country:
         deaths = self.current[3] 
         if self.lockdown and self.current[1]/self.total_population >= self.lockdown_threshold:
             self.lockdown_factor = 0.01
-        if self.lockdown and self.current[1]/self.total_population < self.lockdown_threshold:
+        if self.lockdown and self.current[1]/self.total_population < self.lifiting_threshold:
             self.lockdown_factor = 1 
         self.current[i] -= 1 # S
         self.current[j] += 1 # I 
@@ -240,12 +242,13 @@ class World:
 # create grid of countries 
 
 def create_grid(disease, country_l, dimensions, plot_output=False, 
-                        lockdown=False, lockdown_threshold=0.1):
+                        lockdown=False, lockdown_threshold=0.1, lifiting_threshold=0.01):
     n,m = dimensions 
     country_grid = [[None for _ in range(m)] for _ in range(n)]
     for i in range(n):
         for j in range(m):
-            c = Country(i*m+j, 0, np.array([10**4, 0,0,0]), disease, plot=plot_output, lockdown=lockdown,lockdown_threshold=lockdown_threshold)
+            c = Country(i*m+j, 0, np.array([10**4, 0,0,0]), disease, plot=plot_output, lockdown=lockdown,
+                        lockdown_threshold=lockdown_threshold, lifiting_threshold=lifiting_threshold)
             country_grid[i][j] = c
     def get_neighbours(i, j): 
         neighbours = [(i, j-1), (i, j+1),
