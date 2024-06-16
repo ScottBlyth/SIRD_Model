@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 23 14:18:11 2024
-
-@author: scott
+@author: Scott Blyth
+@studentid: 32501013
 """
 
 from abc import ABC,abstractmethod 
@@ -45,7 +44,6 @@ def sample_point(bounds):
     return p
 
 
-
 def evolve(env : Environment, population, iterations):
     fitness_curve = []
     average_curve = []
@@ -53,15 +51,19 @@ def evolve(env : Environment, population, iterations):
     for _ in range(iterations):
         # compute probability distribution 
         fitnesses = [env.fitness(sol) for i,sol in enumerate(population)]
-        # add to curve
+        # add to curves
         fitness_curve.append(max(fitnesses)) 
         average_curve.append(stats.mean(fitnesses))
         
+        # pick two random solutions from population
+        # based on their fitnesses
         probabilties = np.array(fitnesses)/sum(fitnesses)
         sol1i = np.random.choice(range(len(fitnesses)), p=probabilties)
         sol2i = np.random.choice(range(len(fitnesses)), p=probabilties)
         sol1 = population[sol1i] 
         sol2 = population[sol2i] 
+        
+        # compute crossover and then mutate
         new_sol = sol1.crossover(sol2) 
         mutated_sol = new_sol.mutate()
         
@@ -76,7 +78,8 @@ def evolve(env : Environment, population, iterations):
         fitnesses = [(i,f) for i,f in enumerate(fitnesses)]
         fitnesses = sorted(fitnesses, key=lambda x : -x[1])
     
-        best_each_iter += population
+        # used for measuring statistics on performance
+        best_each_iter += population 
         
         probabilties = [1/(f+1) for i,f in fitnesses[1:]]
         probabilties = np.array(probabilties)/sum(probabilties)

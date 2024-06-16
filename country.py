@@ -1,28 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri May 17 11:47:01 2024
-
-@author: scott
+@author: Scott Blyth
+@studentid: 32501013
 """
 import numpy as np
-import math
-from matplotlib import pyplot as plt
 from disease import disease
 from GI import Environment, evolve
-import time 
 from random import random
-from data_analysis import plot_diseases
-
+from numpy.linalg import matrix_power
 
 # utils 
-
-def fmap_vec(functions): 
-    def wrapped_function(**args):
-        lst = [] 
-        for func in functions: 
-            lst.append(func(args))
-        return np.array(lst) 
-    return wrapped_function
 
 def all_zeros(lst):
     for val in lst:
@@ -48,7 +35,6 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
         event, dt = event_consequences[idx], tte[idx]
         event(t)
         t += dt    
-        #Y = np.vstack([Y, y.get_info()])
         i += 1
 
 time_to_event = lambda p: (-1/p)*np.log(np.random.random())
@@ -76,50 +62,66 @@ class Country:
         self.times = [0]
         self.plot = plot
         self.closed_borders = False 
-        self.lockdown = lockdown
+        self.lockdown = lockdown # will this country go into lockdown or not?
         self.lockdown_factor = 1
         self.lockdown_threshold = lockdown_threshold
         self.lifiting_threshold = lifiting_threshold
         
-    def copy(self):
-        c = Country(self.birth_rate, self.current, self.disease)
-        # in the future, copy neighbours to
-        return c 
+        self.props = None
+        self.events = None
     
     def get_info(self): 
         return np.copy(self.current)
         
+    # connects this country to the given country
+    # the propensity to move from this country to another 
+    # is defined by l_i_j
     def add_neighbour(self, l_i_j, l_j_i, country):
         self.neighbours.append((l_i_j, l_j_i, country))
         
+    # moves person from box self.current[i] to box self.current[j]
+    # note self.current = [S,I,R,D]
     def move_i_to_j(self, i, j, t):
+        # ensures box is never negative
         if self.current[i] == 0:
             return
         deaths = self.current[3] 
+        # detects if this country is in lockdown
+        # if so, set lockdown factor (reduces the infectivity within this country)
         if self.lockdown and self.current[1]/self.total_population >= self.lockdown_threshold:
             self.lockdown_factor = 0.01
+        # detects if lockdown is going to be lifted
         if self.lockdown and self.current[1]/self.total_population < self.lifiting_threshold:
             self.lockdown_factor = 1 
         self.current[i] -= 1 # S
         self.current[j] += 1 # I 
+        # if the graph is to be plotted,
+        # save this change
         if self.plot:
             self.times.append(t)
             self.history = np.vstack([self.history, self.get_info()])
-        
+      
+    # moves person from this country in the self.current[SIRD_index] box
+    # to self.neighbours[neighbour] country - travelling mechanic
     def move_to_country(self, SIRD_index, neighbour, t):
-        # locate neighbour 
         if self.current[SIRD_index] == 0:
             return
         l1,l2,country = self.neighbours[neighbour]
         country.current[SIRD_index] += 1
         self.current[SIRD_index] -= 1
+        # if the graph is to be plotted,
+        # save this change
         if self.plot:
             self.times.append(t)
             self.history = np.vstack([self.history, self.get_info()])
     
     def get_SIRD_events(self): 
+        # computes the propensities and events for 
+        # infection spread within this country. 
         S,I,R,D = self.current
         l1,l2,l3,l4 = self.disease.get_params()
+        # the infectivity, which is moving people from S to I,
+        # is reduced by a factor self.lockdown_factor
         S_to_I = lambda t : l1*self.get_info()[0]*self.get_info()[1]*self.lockdown_factor
         I_to_R = lambda t : l2*self.get_info()[1]
         R_to_S = lambda t : l4*self.get_info()[2]
@@ -133,20 +135,25 @@ class Country:
         events = np.array([event_S_I, event_I_R, event_R_S, event_I_D])
         return props,events
 
+    # returns the propnesities and events for each 
+    # movement operation frm country to country
     def country_to_country(self): 
-        # propensties
+        # returns the functions that return the events at the time t
         def func(s, i): 
             def func2(t): 
-                vaL = l1*self.get_info()[s]
                 return self.move_to_country(s, i, t)
             return func2
         lst = []
+        # collect all of the propentity functions 
+        # for each edge between this country and neighbouring countries.
         for l1,l2,c in self.neighbours: 
             lst.append(lambda t : l1*self.get_info()[0]) # S 
             lst.append(lambda t : l1*self.get_info()[1]/Country.mu) # I 
             lst.append(lambda t : l1*self.get_info()[2]) # R 
         props = np.array(lst)
         events = []
+        # collect all of the event functions 
+        # for each edge between this country and neighbouring countries.
         for i,val in enumerate(self.neighbours):
             l1,l2,c = val
             events.append(func(0, i))
@@ -156,6 +163,9 @@ class Country:
         
         return props,events
         
+    # get all of the propensities and events for this country 
+    # into two lists, where elements of the same index in events 
+    # line up with propensities of the same index in propensities
     def get_events(self): 
         p1,e1 = self.get_SIRD_events()
         p2,e2 = self.country_to_country()
@@ -176,11 +186,15 @@ class GridEnvironemnt(Environment):
         self.country_l = country_l
         self.n = dimensions 
         self.lockdown = lockdown
-
+        
+        # defines legal bounds -> infections 
+        # outside these bounds have fitness 0
         self.l1_bounds = (0.000025, 0.00003)
         self.l2_l3_bounds = (0.01, 0.2) 
 
         self.l4_bounds = (0.0001, 0.0002) 
+        # used to increase efficiecny 
+        # if already computed fitness, grab it from cache
         self.cache_fitness = {}
         
     def in_bounds(self, l1,l2,l3,l4):
@@ -190,6 +204,8 @@ class GridEnvironemnt(Environment):
         return cond1 and cond2 and cond3
     
     def random_population(self): 
+        # generates random disease that is within the 
+        # pre defined bounds.
         l1 = random_interval(self.l1_bounds[0], self.l1_bounds[1])
         l2 = random_interval(self.l2_l3_bounds[0], self.l2_l3_bounds[1]) 
         l3 = random_interval(self.l2_l3_bounds[0], self.l2_l3_bounds[1]) 
@@ -198,6 +214,7 @@ class GridEnvironemnt(Environment):
     
     
     def fitness_aux(self ,l1,l2,l3,l4): 
+        # computes the fitness of the disease defined by (l1,l2,l3,l4)
         if not self.in_bounds(l1,l2,l3,l4):
             return 1
         d = disease(l1,l2,l3,l4)
@@ -212,6 +229,7 @@ class GridEnvironemnt(Environment):
         return 0 if num_deaths < 0 else num_deaths
     
     def fitness(self, sol): 
+        # if already computed fitness, get it from cache
         if sol in self.cache_fitness:
             return self.cache_fitness[sol]
         l1,l2,l3,l4 = sol.to_phenotype()
@@ -221,6 +239,7 @@ class GridEnvironemnt(Environment):
 class World:
     def __init__(self, countries):
         self.countries  = countries
+        # used to cache propensity and event functions
         self.props = None
         self.events = None
         
@@ -235,14 +254,24 @@ class World:
             events += list(e)
         props = np.array(props)
         events = np.array(events)
+        # cache propensity and event functions
         self.props = props 
         self.events = events
         return props,events
     
-# create grid of countries 
+def adj_mat_world(adj_matrix, max_propensity, populations, disease): 
+    n = len(adj_matrix)
+    countries = [Country(i, 0, populations[i], disease) for i in range(n)]
+    for i in range(n):
+        for j in range(n):
+            p = adj_matrix[i][j]
+            if p != 0:
+                countries[i].add_neighbour(max_propensity*p,0, countries[j])
+    return World(countries)
 
 def create_grid(disease, country_l, dimensions, plot_output=False, 
                         lockdown=False, lockdown_threshold=0.1, lifiting_threshold=0.01):
+    # create grid of countries 
     n,m = dimensions 
     country_grid = [[None for _ in range(m)] for _ in range(n)]
     for i in range(n):
@@ -250,6 +279,7 @@ def create_grid(disease, country_l, dimensions, plot_output=False,
             c = Country(i*m+j, 0, np.array([10**4, 0,0,0]), disease, plot=plot_output, lockdown=lockdown,
                         lockdown_threshold=lockdown_threshold, lifiting_threshold=lifiting_threshold)
             country_grid[i][j] = c
+    # get vertical and adjacent neighbours
     def get_neighbours(i, j): 
         neighbours = [(i, j-1), (i, j+1),
                       (i-1, j), (i+1,j)]
@@ -263,6 +293,14 @@ def create_grid(disease, country_l, dimensions, plot_output=False,
     return countries, country_grid
 
 
+def find_stable(initial, Q, population, n=100):
+    Q_star = matrix_power(Q, n)
+    ans = (initial * Q_star.T) * population
+    return ans.T [0]
+
+
+
+# used for plotting data
 def add_curves(curves):
     time_steps = [] 
     for curve in curves:
@@ -283,39 +321,8 @@ def add_curves(curves):
                 current_indices[i] += 1
         resulting_curve.append((t, sum_))
     return [t for t,y in resulting_curve], [y for t,y in resulting_curve]
-    
 
-
-    
-
-    
-    
 def get_x(lst):
     return [i for i in range(len(lst))]
-    
-if __name__ == "__main__":
-    if input("do u want to run things?: ") == 'y':
-        env = GridEnvironemnt(0.005, 1, True)
-        population = [env.random_population() for _ in range(20)] 
-        #evolve(env : Environment, population, iterations)
-
-        population,curve,avg_curve,bests = evolve(env, population, 100)
-        population = sorted(population, key=lambda x : -env.fitness(x))
-        
-    
-        d = disease(0.0003, 1, 0.2,  0.01)
-        best = population[0]
-        
-        countries,grid = create_grid(best, 0.005, (2,2), True) 
-        grid[0][0].current[1] = 5
-        grid[1][1].current[0] = 20000
-        w = World(countries)
-        start = time.time()
-        #gillespie(w, 0,  t_max=365, max_iter=3*10**5)
-        end = time.time() 
-        print(end-start)
-        
-    
-    
     
 

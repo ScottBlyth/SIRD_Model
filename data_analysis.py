@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun  3 17:17:56 2024
-
-@author: ningnong
+@author: Scott Blyth
+@studentid: 32501013
 """
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA

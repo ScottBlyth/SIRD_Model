@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue May 21 15:40:32 2024
-
-@author: scott
+@author: Scott Blyth
+@studentid: 32501013
 """
 
 from GI import Genome
 from random import random, randint
 import numpy as np
-from sklearn.cluster import KMeans 
 
 def random_vec(n, vec):
+    # generate random vector with bounds defined by vec
     return np.array([2*vec[i]*random()-vec[i] for i in range(n)])
 
 class disease(Genome): 
@@ -34,14 +33,15 @@ class disease(Genome):
         return disease(self.l1,self.l2,self.l3,self.l4)
     
     def mutate(self): 
+        # shifts each parameter by random amount
         k = random_vec(4, self.mutation_rate)
         new_vec = self.to_phenotype()+k
         l1,l2,l3,l4 = new_vec
-        if self.lock_l1:
-            l1 = self.l1
+        # rerurns new disease
         return disease(abs(l1),abs(l2),abs(l3),abs(l4))
         
     def crossover(self, other):
+        # 1 in 2 chance of just returning self
         if randint(1,2) == 1:
             return self
         diseases = [self.to_phenotype(), other.to_phenotype()]
