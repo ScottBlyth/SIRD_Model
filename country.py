@@ -8,6 +8,7 @@ from disease import disease
 from GI import Environment, evolve
 from random import random
 from numpy.linalg import matrix_power
+from pprint import pprint
 
 # utils 
 
@@ -259,6 +260,12 @@ class World:
         self.events = events
         return props,events
     
+    def get_info(self):
+        info = []
+        for c in self.countries:
+            info.append(c.get_info())
+        return info
+            
 def adj_mat_world(adj_matrix, max_propensity, populations, disease): 
     n = len(adj_matrix)
     countries = [Country(i, 0, populations[i], disease) for i in range(n)]
@@ -268,6 +275,18 @@ def adj_mat_world(adj_matrix, max_propensity, populations, disease):
             if p != 0:
                 countries[i].add_neighbour(max_propensity*p,0, countries[j])
     return World(countries)
+
+def flow_mat_to_world(flow_matrix, populations, disease):
+    n = len(flow_matrix)
+    countries = [Country(i, 0, populations[i], disease) for i in range(n)]
+    for i in range(n):
+        for j in range(n):
+            f = flow_matrix[i][j]
+            if f != 0:
+                countries[i].add_neighbour(f,0, countries[j])
+    return World(countries)
+
+
 
 def create_grid(disease, country_l, dimensions, plot_output=False, 
                         lockdown=False, lockdown_threshold=0.1, lifiting_threshold=0.01):
@@ -293,10 +312,69 @@ def create_grid(disease, country_l, dimensions, plot_output=False,
     return countries, country_grid
 
 
+# stability stuff
+
+def jacobi_newton(J_f, F, x, iterations=25): 
+    # J_f is a function 
+    x = x / np.linalg.norm(x)
+    J_0 = J_f(x) 
+    F_0 = F(x)
+    for _ in range(iterations): 
+        dx = np.linalg.solve(J_0, F_0) 
+        x = x - dx
+        J_0 = J_f(x)
+        F_0 = F(x)
+    return x
+
+
 def find_stable(initial, Q, population, n=100):
+    initial = initial / np.linalg.norm(initial)
     Q_star = matrix_power(Q, n)
     ans = (initial * Q_star.T) * population
     return ans.T [0]
+
+def PFM_Jacobi(flow_matrix, i): 
+    n = len(flow_matrix)
+    def func(P):
+        J = [[0 for _ in range(n)] for _ in range(n)]
+        # first bit 
+        for j in range(n):
+            if j != i:
+                J[j][j] = P[i]
+        # second bit 
+        for j in range(n):
+            J[i][j] = 1
+        # third bit
+        for j in range(n):
+            if j != i:
+                p2 = 2*flow_matrix[i][j]*(P[i]-1)
+                J[j][i] = P[j]-p2
+        return np.array(J) 
+    return func
+
+def PFM_Func(flow_matrix, i):
+    n = len(flow_matrix) 
+    def func(P):
+        F = [0 for _ in range(n)]
+        for j in range(n):
+            if j != i:
+                p2 = flow_matrix[i][j]*(P[i]-1)*(P[i]-1)
+                F[j] = P[j]*P[i]-p2
+        F[i] = sum(P)-1
+        return np.array(F)
+    return func
+
+def flow_to_markov_chain(flow_matrix): 
+    n = len(flow_matrix)
+    Q = [[0 for _ in range(n)] for _ in range(n)]
+    for i,f in enumerate(flow_matrix):
+        J_f = PFM_Jacobi(flow_matrix, i)
+        F = PFM_Func(flow_matrix, i)
+        P = np.array([1/n for _ in range(n)])
+        x = jacobi_newton(J_f, F, P, 25)
+        for j in range(n):
+            Q[i][j] = x[j]
+    return np.array(Q)
 
 
 
@@ -325,4 +403,19 @@ def add_curves(curves):
 def get_x(lst):
     return [i for i in range(len(lst))]
     
+if __name__ == "__main__":
+    d = disease(0.00005, 0,0,0)
+    flow_matrix = np.array([[0, 0.002, 0.005], 
+    [0.005, 0, 0.006], 
+    [0.003, 0.004, 0]])
+    w = flow_mat_to_world(flow_matrix, 
+        [[30000, 0,0,0], [0,0,0,0], 
+         [0,0,0,0]], d)
+    Q = flow_to_markov_chain(flow_matrix)
+    zeros = np.zeros(len(flow_matrix))
+    zeros[0] = 1 
+    stable = find_stable(zeros, Q, 30000)
+
+
+
 
