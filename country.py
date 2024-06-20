@@ -9,6 +9,7 @@ from GI import Environment, evolve
 from random import random
 from numpy.linalg import matrix_power
 from pprint import pprint
+import math
 
 # utils 
 
@@ -314,6 +315,37 @@ def create_grid(disease, country_l, dimensions, plot_output=False,
 
 # stability stuff
 
+def flatten(vec):
+    return vec / sum(vec) 
+
+def flow_probability(l):
+    if l == 0:
+        return 0
+    gamma = 1/l 
+    numerator = 2*gamma-math.sqrt(4*gamma+1)+1
+    denominator = 2*gamma
+    return numerator/denominator
+    
+
+def PFM(flow_matrix):
+    n = len(flow_matrix)
+    size = n**2 + n - 1
+    Q = [[0 for _ in range(size)] for _ in range(size)]
+    for i in range(n):
+        flow = flow_matrix[i]
+        # compute probabilties 
+        probabilties = flow / sum(flow)
+        for j in range(n):
+            index = n+i*n+j-1
+            Q[i][index] = probabilties[j]
+            flow_prob = flow_probability(flow[j])
+            Q[index][index] = flow_prob
+            Q[index][j] = 1-flow_prob
+    return np.array(Q)
+            
+        
+
+
 def jacobi_newton(J_f, F, x, iterations=25): 
     # J_f is a function 
     x = x / np.linalg.norm(x)
@@ -328,10 +360,10 @@ def jacobi_newton(J_f, F, x, iterations=25):
 
 
 def find_stable(initial, Q, population, n=100):
-    initial = initial / np.linalg.norm(initial)
+    initial = flatten(initial)
     Q_star = matrix_power(Q, n)
     ans = (initial * Q_star.T) * population
-    return ans.T [0]
+    return ans
 
 def PFM_Jacobi(flow_matrix, i): 
     n = len(flow_matrix)
@@ -339,16 +371,18 @@ def PFM_Jacobi(flow_matrix, i):
         J = [[0 for _ in range(n)] for _ in range(n)]
         # first bit 
         for j in range(n):
-            if j != i:
+            if j != i and flow_matrix[i][j] != 0:
                 J[j][j] = P[i]
+            if flow_matrix[i][j] == 0:
+                J[j][j] = 1
         # second bit 
         for j in range(n):
             J[i][j] = 1
         # third bit
         for j in range(n):
-            if j != i:
-                p2 = 2*flow_matrix[i][j]*(P[i]-1)
-                J[j][i] = P[j]-p2
+            if j != i and flow_matrix[i][j] != 0:
+                l = 1/flow_matrix[i][j]
+                J[j][i] = P[j]-2*l*(P[i]-1)
         return np.array(J) 
     return func
 
@@ -357,21 +391,23 @@ def PFM_Func(flow_matrix, i):
     def func(P):
         F = [0 for _ in range(n)]
         for j in range(n):
-            if j != i:
-                p2 = flow_matrix[i][j]*(P[i]-1)*(P[i]-1)
-                F[j] = P[j]*P[i]-p2
+            if j != i and flow_matrix[i][j] != 0:
+                l = 1/flow_matrix[i][j]
+                F[j] = P[j]*P[i]-l*(P[i]-1)*(P[i]-1)
+            if flow_matrix[i][j] == 0:
+                F[j] = 0
         F[i] = sum(P)-1
         return np.array(F)
     return func
 
-def flow_to_markov_chain(flow_matrix): 
+def flow_to_markov_chain(flow_matrix, iterations=25): 
     n = len(flow_matrix)
     Q = [[0 for _ in range(n)] for _ in range(n)]
     for i,f in enumerate(flow_matrix):
         J_f = PFM_Jacobi(flow_matrix, i)
         F = PFM_Func(flow_matrix, i)
         P = np.array([1/n for _ in range(n)])
-        x = jacobi_newton(J_f, F, P, 25)
+        x = jacobi_newton(J_f, F, P, iterations)
         for j in range(n):
             Q[i][j] = x[j]
     return np.array(Q)
@@ -400,6 +436,19 @@ def add_curves(curves):
         resulting_curve.append((t, sum_))
     return [t for t,y in resulting_curve], [y for t,y in resulting_curve]
 
+def simulate_markov(Q, i, j):
+    current = i
+    n = len(Q)
+    length = 0
+    while True:
+        next = np.random.choice(range(n), p=Q[i])
+        if next == j:
+            return length 
+        if next == current:
+            length += 1
+        else:
+            length = 0
+
 def get_x(lst):
     return [i for i in range(len(lst))]
     
@@ -409,12 +458,11 @@ if __name__ == "__main__":
     [0.005, 0, 0.006], 
     [0.003, 0.004, 0]])
     w = flow_mat_to_world(flow_matrix, 
-        [[30000, 0,0,0], [0,0,0,0], 
+        [[10000, 0,0,0], [0,0,0,0], 
          [0,0,0,0]], d)
-    Q = flow_to_markov_chain(flow_matrix)
-    zeros = np.zeros(len(flow_matrix))
-    zeros[0] = 1 
-    stable = find_stable(zeros, Q, 30000)
+    Q = flow_to_markov_chain(flow_matrix*20)
+    ones = np.array([0, 0,1])
+    stable = find_stable(ones, Q, 10000, 1000)
 
 
 
