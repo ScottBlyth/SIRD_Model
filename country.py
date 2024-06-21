@@ -478,7 +478,11 @@ def dsdt(flow_matrix):
         return np.array(s)
     return f 
 
-
+def get_solver(flow_matrix, num_days, y0, n=50):
+    f = dsdt(flow_matrix)
+    t = np.linspace(0, num_days, n)
+    sol = odeint(f, y0, t)
+    return sol
 
 def simulate_markov(Q, i, j):
     current = i
