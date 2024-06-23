@@ -366,9 +366,12 @@ def PFM(flow_matrix):
             if i == j:
                 continue
             index = n+i*n+j
-            gamma = 1/flow[j]
+            if flow[j] == 0:
+                flow_prob = 1
+            else:
+                gamma = 1/flow[j]
+                flow_prob = gamma/(1+gamma)
             Q[i][index] = probabilties[j]
-            flow_prob = gamma/(1+gamma)
             Q[index][index] = flow_prob
             Q[index][j] = 1-flow_prob
     return np.array(Q)
@@ -389,14 +392,15 @@ def jacobi_newton(J_f, F, x, iterations=25):
     return x
 
 
-def find_stable(Q, f, population, n=100):
+def find_stable(Q, population, n=100):
+    f = int((-1+math.sqrt(1+4*len(Q)))/2)
     Q_star = matrix_power(Q, n)
     stable = np.ones(f)
     for i in range(f):
         stable[i] = Q_star[0][i]
         for j in range(f): 
             stable[i] += Q_star[0][f+i*f+j]
-    return stable
+    return population*stable
 
 def PFM_Jacobi(flow_matrix, i): 
     n = len(flow_matrix)
@@ -497,12 +501,13 @@ def simulate_markov(Q, i, j):
 
 def get_x(lst):
     return [i for i in range(len(lst))]
+
     
 if __name__ == "__main__":
     d = disease(0.00005, 0,0,0)
-    flow_matrix = np.array([[0, 0.005, 0.005], 
+    flow_matrix = np.array([[0, 0.1, 0.005], 
     [0.005, 0, 0.001], 
-    [0.003, 0.004, 0]])
+    [0.0003, 0.0004, 0]])
     w = flow_mat_to_world(flow_matrix, 
         [[5000, 0,0,0], [5000,0,0,0], 
          [0,0,0,0]], d)
