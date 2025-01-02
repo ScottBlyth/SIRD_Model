@@ -151,11 +151,13 @@ class SIR_CrossEntropy(BaseEstimator):
     def score(self, point, y0, X, y):
         try:
             l1,l2 = point 
+            if l1 < 0 or l2 < 0 or l1 < l2:
+                return float('inf')
             model = SIRModel(l1,l2)
             y_pred = odeint(model, y0=y0, t=X)
             return mean_squared_error(y, y_pred) 
         except:
-            return 10**6
+            return float('inf')
         
     
     def predict(self, X, y0=np.array([10**4, 1, 0])):
@@ -164,35 +166,44 @@ class SIR_CrossEntropy(BaseEstimator):
         return y_pred
         
     def fit(self, X, y): 
-        x_p = np.random.uniform(low=-2, high=0, size=self.n_samples)
-        y_p = np.random.uniform(low=-2, high=0, size=self.n_samples)
+        x_p = np.random.uniform(low=0, high=1, size=self.n_samples)
+        y_p = np.random.uniform(low=0, high=1, size=self.n_samples)
         p = np.array([x_p,  y_p]).T
-        mu = np.mean(p, axis=0)
+        mu = np.array([0.3,0.1])
         cov = np.cov(p, rowvar=0)
         y0 = y[0]
         # 
         best_found = None
-        best = 10**7
+        best = float('inf')
+        temperature = 10
         for _ in range(self.max_iterations):
             # sample self.n_sample points
-            points = transform(5)(sigmoid(np.random.multivariate_normal(mean=mu, cov=cov, size=self.n_samples)))
+            points = np.random.multivariate_normal(mean=mu, cov=cov, size=self.n_samples)
+            print(np.mean(points, axis=0))
             scores = [self.score(point, y0, X, y) for point in points]
             sort_points_idx = sorted(np.arange(0, self.n_samples), key=lambda i : scores[i])
             elites = points[sort_points_idx[:self.elite_size]]
-            
+            score = self.score(elites[0], y0, X, y)
             if best_found is None or self.score(elites[0], y0, X, y) < best:
                 best_found = elites[0]
+                best = score
             
             # fit multi variate gaussian distribution around the elite samples 
-            elite_logits = inverse_transform(5)(elites)
-            elite_logits = logit(elite_logits)
-            mu = np.mean(elite_logits, axis=0)
-            cov = np.cov(elite_logits, rowvar=0)
-        print(best_found)
+            elite_logits = elites
+            #elite_logits = logit(elite_logits)
+            mu = np.max(elite_logits, axis=0)
+            cov = cov*0.8
+            temperature *= 0.8
         self.l1,self.l2 = best_found # get the best elite
         self.y0 = y0
         self.mu = mu
         self.cov = cov
+        
+        points = points[sort_points_idx]
+        colours = ["red" if i < self.elite_size else "blue" for i in range(len(points))]
+        plt.scatter(points.T[0], points.T[1], color=colours, s=0.3)
+        plt.show()
+        
         return self
     
 if __name__ == "__main__":
@@ -208,15 +219,18 @@ if __name__ == "__main__":
     y += noise 
     #X += noise2
     
+    
+    
+    temps = np.arange(0.98, 1, 0.005)
+ 
+    estimator = SIR_CrossEntropy(max_iterations=10, n_samples=200, elite_size=10)
+    model = estimator.fit(X, y)
+    y_pred = model.predict(X, y0=np.array([10**5, 1, 0]))
+    
     for i in range(len(y[0])):
         plt.scatter(X, y.T[i], s=1)
     plt.legend(["S", "I", "R"])
     
-    temps = np.arange(0.98, 1, 0.005)
- 
-    estimator = SIR_CrossEntropy(max_iterations=5, n_samples=100, elite_size=10)
-    model = estimator.fit(X, y)
-    y_pred = model.predict(X, y0=np.array([10**5, 1, 0]))
     plt.plot(X, y_pred)
     plt.show()
       
