@@ -25,23 +25,7 @@ def SIRModel(l1,l2):
         dIdt = l1*S*I/N - l2*I
         dRdt = l2*I
         return np.array([dsdt, dIdt, dRdt])
-    return dydt
-
-class SIR_Regressor(BaseEstimator):
-    def __init__(self, y0, learning_rate=0.01):
-        self.y0 = y0
-        self.learning_rate = learning_rate 
-        
-    def fit(self, X, y): 
-        w = np.array([0.5, 0.5])
-        
-        
-    
-    def predict(self, X): 
-        # sort X and y by X 
-        y0 = self.y0
-        y = odeint(SIRModel(self.l1,self.l2), y0=y0, t=X) 
-        return y
+    return dydt   
 
 # uses simulated annealing to fit
 class SIR_Estimator(BaseEstimator): 
@@ -67,7 +51,6 @@ class SIR_Estimator(BaseEstimator):
         min_ = np.argmin(errors)
         return errors, np.array(ls), ls[min_]
         
-    
     def fit(self, X, y): 
         # X = S,I,R
         # np.random.normal()
@@ -133,6 +116,85 @@ class SIR_Estimator(BaseEstimator):
         y = odeint(SIRModel(self.l1,self.l2), y0=y0, t=X) 
         return y
     
+    
+def sigmoid(x):
+  return 1 / (1 + np.exp(-x))
+
+def logit(x):
+    return np.log(x/(1-x))
+
+def transform(k):
+    def f(p):
+        points = []
+        for x,y in p:
+            scaling = k*x+1
+            points.append(np.array([scaling*y, y]))
+        return np.array(points)
+    return f
+
+def inverse_transform(k):
+    def f(p):
+        points = []
+        for x,y in p:
+            result = np.array([(x-y)/(k*y), y]) 
+            points.append(result)
+        return np.array(points)
+    return f
+    
+
+class SIR_CrossEntropy(BaseEstimator):
+    def __init__(self, max_iterations=50, n_samples=100, elite_size=10):
+        self.max_iterations = max_iterations
+        self.n_samples = n_samples 
+        self.elite_size = elite_size
+        
+    def score(self, point, y0, X, y):
+        try:
+            l1,l2 = point 
+            model = SIRModel(l1,l2)
+            y_pred = odeint(model, y0=y0, t=X)
+            return mean_squared_error(y, y_pred) 
+        except:
+            return 10**6
+        
+    
+    def predict(self, X, y0=np.array([10**4, 1, 0])):
+        model = SIRModel(self.l1,self.l2)
+        y_pred = odeint(model, y0=y0, t=X)
+        return y_pred
+        
+    def fit(self, X, y): 
+        x_p = np.random.uniform(low=-2, high=0, size=self.n_samples)
+        y_p = np.random.uniform(low=-2, high=0, size=self.n_samples)
+        p = np.array([x_p,  y_p]).T
+        mu = np.mean(p, axis=0)
+        cov = np.cov(p, rowvar=0)
+        y0 = y[0]
+        # 
+        best_found = None
+        best = 10**7
+        for _ in range(self.max_iterations):
+            # sample self.n_sample points
+            points = transform(5)(sigmoid(np.random.multivariate_normal(mean=mu, cov=cov, size=self.n_samples)))
+            scores = [self.score(point, y0, X, y) for point in points]
+            sort_points_idx = sorted(np.arange(0, self.n_samples), key=lambda i : scores[i])
+            elites = points[sort_points_idx[:self.elite_size]]
+            
+            if best_found is None or self.score(elites[0], y0, X, y) < best:
+                best_found = elites[0]
+            
+            # fit multi variate gaussian distribution around the elite samples 
+            elite_logits = inverse_transform(5)(elites)
+            elite_logits = logit(elite_logits)
+            mu = np.mean(elite_logits, axis=0)
+            cov = np.cov(elite_logits, rowvar=0)
+        print(best_found)
+        self.l1,self.l2 = best_found # get the best elite
+        self.y0 = y0
+        self.mu = mu
+        self.cov = cov
+        return self
+    
 if __name__ == "__main__":
     # create synthetic data 
     plt.show()
@@ -152,10 +214,9 @@ if __name__ == "__main__":
     
     temps = np.arange(0.98, 1, 0.005)
  
-    estimator = SIR_Estimator(y0 = np.array([10**5, 1, 0]),
-                              sd=0.01, max_iterations=2, temp_factor=0.25)
+    estimator = SIR_CrossEntropy(max_iterations=5, n_samples=100, elite_size=10)
     model = estimator.fit(X, y)
-    y_pred = model.predict(X)
+    y_pred = model.predict(X, y0=np.array([10**5, 1, 0]))
     plt.plot(X, y_pred)
     plt.show()
       
