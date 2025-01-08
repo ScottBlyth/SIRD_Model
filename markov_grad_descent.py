@@ -33,9 +33,15 @@ def gradient(l1,l2,l3, y):
     J[1] = np.array([ -p1*(1-p1)+p1*(1-p1)*(1-p2-p3), -p2*(1-p2)*p1, -p3*(1-p3)*p1])
     J[2] = np.array([ p1*(1-p1)*p3, 0, p3*(1-p3)*p1 ])
     return J.T @ error 
+
+def plot_error(errors):
+    errors = np.array(errors)
+    plt.plot(errors)
+    plt.ylim([0, errors[0]+errors[0]/10])
+    plt.show() 
     
-def grad_descent(y=np.array([0.1, 0.5, 0.4]), max_iterations=10**5, epsilon=0.001, learning_rate=0.01):
-    l1,l2,l3 = np.ones(3)
+def grad_descent(y=np.array([0.1, 0.5, 0.4]), max_iterations=10**4, epsilon=0.001, learning_rate=10):
+    l1,l2,l3 = logit(0.5*np.ones(3))
     points = []
     errors = []
     for _ in range(max_iterations): 
@@ -46,17 +52,12 @@ def grad_descent(y=np.array([0.1, 0.5, 0.4]), max_iterations=10**5, epsilon=0.00
         error =  np.linalg.norm(y_pred - y)
         errors.append(error**2)
         if error <= epsilon:
-            print(f"error: {np.linalg.norm(y_pred - y) }")
-            print(predict(l1,l2,l3))
-            return sigmoid(np.array([l1,l2,l3]))
+            break
     print(f"error: {np.linalg.norm(y_pred - y) }")
-    print(predict(l1,l2,l3))
-    points = np.array(points)
-    errors = np.array(errors)
-    plt.plot(errors)
-    plt.ylim([0, errors[0]+0.1])
-    plt.show() 
-    return sigmoid(np.array([l1,l2,l3]))
+    print(y_pred)
+    plot_error(errors)
+    return sigmoid(next_l)
     
 if __name__ == "__main__":
-    p1,p2,p3 = grad_descent(y=np.array([0.1, 0.7, 0.2]))
+    p1,p2,p3 = grad_descent(y=np.array([0.1, 0.6, 0.3]))
+    P = np.array([p1,p2,p3])

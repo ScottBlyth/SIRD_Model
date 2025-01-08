@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+  <content>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="1080.0" prefWidth="1903.0" style="-fx-background-color: #a9a9a9;">
+         <children>
+            <Text layoutX="14.0" layoutY="38.0" strokeType="OUTSIDE" strokeWidth="0.0" text="SIR Model" wrappingWidth="208.28509140014648">
+               <font>
+                  <Font name="MS Reference Sans Serif" size="30.0" />
+               </font></Text>
+            <LineChart id="epiSpread" layoutX="916.0" layoutY="26.0" legendSide="TOP" prefHeight="593.0" prefWidth="879.0" title="Epidemic Model">
+              <xAxis>
+                <CategoryAxis label="Day" side="BOTTOM">
+                     <tickLabelFont>
+                        <Font size="9.0" />
+                     </tickLabelFont>
+                  </CategoryAxis>
+              </xAxis>
+              <yAxis>
+                <NumberAxis label="Number of People" side="LEFT">
+                     <tickLabelFont>
+                        <Font size="19.0" />
+                     </tickLabelFont>
+                  </NumberAxis>
+              </yAxis>
+            </LineChart>
+         </children></AnchorPane>
+  </content>
+</ScrollPane>
