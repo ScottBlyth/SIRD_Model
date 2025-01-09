@@ -1,0 +1,9 @@
+
+.button {
+    -fx-background-color: rgb(230, 0, 0);
+    -fx-border-color: black;
+}
+.button:pressed {
+    -fx-background-color: rgb(160, 0, 0);
+   
+}
