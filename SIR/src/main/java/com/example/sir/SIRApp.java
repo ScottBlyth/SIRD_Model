@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -17,13 +18,11 @@ public class SIRApp extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
         stage.setTitle("SIR Model");
         stage.setScene(scene);
+
         stage.show();
     }
 
     public static void main(String[] args) {
         launch();
-
-
-
     }
 }
