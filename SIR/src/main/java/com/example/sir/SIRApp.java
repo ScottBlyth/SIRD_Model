@@ -18,7 +18,6 @@ public class SIRApp extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
         stage.setTitle("SIR Model");
         stage.setScene(scene);
-
         stage.show();
     }
 
