@@ -37,6 +37,13 @@ public class SIRController {
         series.getData().add(new XYChart.Data<>(2,3));
         series.setName("Infections");
         epiChart.getData().add(series);
+
+        GraphFactory factory = new GraphFactory();
+        try {
+            Graph test = factory.createGraph("map.json");
+        }catch (Exception e) {
+
+        }
     }
 
     @FXML

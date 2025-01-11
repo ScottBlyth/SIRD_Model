@@ -1,9 +1,9 @@
 package com.example.sir;
 
+import org.json.simple.JSONObject;
+
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 public class Graph {
 
@@ -25,8 +25,8 @@ public class Graph {
         return nodes.size();
     }
     public String toJson() {
-        StringBuilder object = new StringBuilder("{");
         int i = 0;
+        StringBuilder object = new StringBuilder("{");
         for(ArrayList<Tuple<Integer, Float>> neighbours : nodes){
             String key = "\""+i+"\"";
             String comma = ",\n";
