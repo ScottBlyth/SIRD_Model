@@ -27,7 +27,8 @@ public class GraphFactory {
             }
             for(String entry : (Set<String>) object.keySet()) {
                 Integer u = Integer.valueOf(entry);
-                JSONArray array = (JSONArray) object.get(entry);
+                JSONObject iObject = (JSONObject) object.get(entry);
+                JSONArray array = (JSONArray) iObject.get("neighbours");
                 for(Object obj : array) {
                     JSONArray edge = (JSONArray) obj;
                     // out vertex

@@ -5,5 +5,18 @@
 }
 .button:pressed {
     -fx-background-color: rgb(160, 0, 0);
-   
+}
+
+.saveButton {
+    -fx-border-width: 0;
+    -fx-background-color: rgb(0,0,0, 0);
+    -fx-background-size: 100%;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: 100%;
+    -fx-background-image: url("save_button.png");
+}
+
+.saveButton:pressed {
+    -fx-border-width: 0;
+    -fx-background-color: rgb(0,0,0);
 }

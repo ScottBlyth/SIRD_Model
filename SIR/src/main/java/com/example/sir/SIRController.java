@@ -1,13 +1,9 @@
 package com.example.sir;
 
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
@@ -16,7 +12,8 @@ import javafx.scene.shape.Line;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SIRController {
     @FXML
@@ -29,6 +26,7 @@ public class SIRController {
     private Integer vertexSelected = -1;
     private Circle nodeSelected;
     private final Graph graph = new Graph();
+    private List<Circle> circles = new ArrayList<>();
 
     @FXML
     public void initialize() {
@@ -37,13 +35,6 @@ public class SIRController {
         series.getData().add(new XYChart.Data<>(2,3));
         series.setName("Infections");
         epiChart.getData().add(series);
-
-        GraphFactory factory = new GraphFactory();
-        try {
-            Graph test = factory.createGraph("map.json");
-        }catch (Exception e) {
-
-        }
     }
 
     @FXML
@@ -52,6 +43,7 @@ public class SIRController {
             Circle circle = new Circle(mouseEvent.getX(), mouseEvent.getY(), 10, Paint.valueOf("blue"));
             graph.addNode();
             int circleID = graph.numNodes()-1;
+            circle.setId("C"+circleID);
             circle.setOnMouseClicked(mouseEvent1 -> {
                 if(selectedNode){
                     if(vertexSelected == circleID) {
@@ -74,6 +66,7 @@ public class SIRController {
                 }
 
             });
+            circles.add(circle);
             cityGraph.getChildren().add(circle);
         }
     }
@@ -90,8 +83,12 @@ public class SIRController {
 
     @FXML
     public void save() throws IOException {
+        List<Tuple<Double, Double>> positions = new ArrayList<>();
+        for(Circle circle : circles) {
+            positions.add(new Tuple<>(circle.getCenterX(), circle.getCenterY()));
+        }
         FileWriter writer = new FileWriter("map.json");
-        writer.write(graph.toJson());
+        writer.write(graph.toJson(positions).toJSONString());
         writer.close();
     }
 

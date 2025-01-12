@@ -1,8 +1,10 @@
 package com.example.sir;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Graph {
@@ -24,19 +26,24 @@ public class Graph {
     public Integer numNodes(){
         return nodes.size();
     }
-    public String toJson() {
+
+    public JSONObject toJson(List<Tuple<Double, Double>> positions) {
         int i = 0;
-        StringBuilder object = new StringBuilder("{");
-        for(ArrayList<Tuple<Integer, Float>> neighbours : nodes){
-            String key = "\""+i+"\"";
-            String comma = ",\n";
-            if(i == nodes.size()-1) {
-                comma = "\n";
+        JSONObject jsonObject = new JSONObject();
+        for(ArrayList<Tuple<Integer, Float>> neighbours : nodes) {
+            // vertex i
+            JSONObject iObject = new JSONObject();
+            JSONArray neighbourArray = new JSONArray();
+            for(Tuple<Integer, Float> edge : neighbours) {
+                JSONArray arr = edge.toJSon();
+                neighbourArray.add(arr);
             }
-            object.append(key).append(":").append(neighbours).append(comma);
+            iObject.put("neighbours", neighbourArray);
+            iObject.put("position", positions.get(i).toJSon());
+            jsonObject.put(String.valueOf(i), iObject);
+            // increment i
             i++;
         }
-        object.append("}");
-        return object.toString();
+        return jsonObject;
     }
 }

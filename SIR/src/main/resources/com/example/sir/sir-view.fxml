@@ -45,10 +45,7 @@
                         <Font name="Calibri" size="17.0" />
                      </font>
                   </Button>
-                  <Button fx:id="linkCreate1" layoutX="815.0" layoutY="460.0" mnemonicParsing="false" onAction="#save" text="Save">
-                     <font>
-                        <Font name="Calibri" size="17.0" />
-                     </font>
+                  <Button fx:id="saveButton" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#save" prefHeight="60.0" prefWidth="55.0" styleClass="saveButton">
                   </Button>
                </children></Pane>
          </children></AnchorPane>
