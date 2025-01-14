@@ -10,44 +10,45 @@
 <?import javafx.scene.text.Text?>
 
 <ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: black;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.sir.SIRController">
-  <content>
-    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="1080.0" prefWidth="1903.0" style="-fx-background-color: #a9a9a9;">
-         <children>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="1080.0" prefWidth="1903.0" style="-fx-background-color: #a9a9a9;" styleClass="mapPane">
+        <children>
             <Text layoutX="14.0" layoutY="38.0" strokeType="OUTSIDE" strokeWidth="0.0" text="SIR Model" wrappingWidth="208.28509140014648">
-               <font>
-                  <Font name="MS Reference Sans Serif" size="30.0" />
-               </font></Text>
+                <font>
+                    <Font name="MS Reference Sans Serif" size="30.0" />
+                </font>
+            </Text>
             <LineChart id="epiSpread" fx:id="epiChart" layoutX="952.0" layoutY="29.0" legendSide="TOP" prefHeight="593.0" prefWidth="879.0" title="Epidemic Model">
-              <xAxis>
-                <NumberAxis label="Day" side="BOTTOM">
-                     <tickLabelFont>
-                        <Font size="20.0" />
-                     </tickLabelFont>
-                  </NumberAxis>
-              </xAxis>
-              <yAxis>
-                <NumberAxis label="Number of People" side="LEFT">
-                     <tickLabelFont>
-                        <Font size="20.0" />
-                     </tickLabelFont>
-                  </NumberAxis>
-              </yAxis>
+                <xAxis>
+                    <NumberAxis label="Day" side="BOTTOM">
+                        <tickLabelFont>
+                            <Font size="20.0" />
+                        </tickLabelFont>
+                    </NumberAxis>
+                </xAxis>
+                <yAxis>
+                    <NumberAxis label="Number of People" side="LEFT">
+                        <tickLabelFont>
+                            <Font size="20.0" />
+                        </tickLabelFont>
+                    </NumberAxis>
+                </yAxis>
             </LineChart>
-            <Pane fx:id="cityGraph" layoutX="18.0" layoutY="71.0" onMouseClicked="#clickOnGraph" prefHeight="509.0" prefWidth="895.0" style="-fx-background-color: white;">
-               <children>
-                  <Button fx:id="createNode" layoutX="750.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleCreateNode" text="Create Node">
-                     <font>
-                        <Font name="Calibri" size="17.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="linkCreate" layoutX="622.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleCreateLink" text="Create Link">
-                     <font>
-                        <Font name="Calibri" size="17.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="saveButton" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#save" prefHeight="60.0" prefWidth="55.0" styleClass="saveButton">
-                  </Button>
-               </children></Pane>
-         </children></AnchorPane>
-  </content>
+            <Pane fx:id="cityGraph" layoutX="18.0" layoutY="71.0" onMouseClicked="#clickOnGraph" prefHeight="509.0" prefWidth="895.0" styleClass="mapPane">
+                <children>
+                    <Button fx:id="createNode" layoutX="750.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleCreateNode" text="Create Node">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
+                    <Button fx:id="linkCreate" layoutX="622.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleCreateLink" text="Create Link">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
+                    <Button fx:id="saveButton" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#save" prefHeight="60.0" prefWidth="55.0" styleClass="saveButton">
+                    </Button>
+                </children>
+            </Pane>
+        </children>
+    </AnchorPane>
 </ScrollPane>

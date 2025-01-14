@@ -1,10 +1,11 @@
 
 .button {
-    -fx-background-color: rgb(230, 0, 0);
+    -fx-fill: rgb(230, 0, 0);
     -fx-border-color: black;
+    -fx-border-radius: 300%;
 }
 .button:pressed {
-    -fx-background-color: rgb(160, 0, 0);
+    -fx-fill: rgb(160, 0, 0);
 }
 
 .saveButton {
@@ -17,6 +18,23 @@
 }
 
 .saveButton:pressed {
-    -fx-border-width: 0;
     -fx-background-color: rgb(0,0,0);
+}
+
+.node {
+    -fx-fill: rgba(0,0,0,0);
+    -fx-stroke: red;
+    -fx-stroke-width: 5;
+}
+
+.node:selected {
+    -fx-fill: black;
+    -fx-stroke: red;
+    -fx-stroke-width: 5;
+}
+
+.mapPane {
+    -fx-hgap: 20px;
+    -fx-background-color:  #d8d8d8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 10, 0, 0, 0);
 }

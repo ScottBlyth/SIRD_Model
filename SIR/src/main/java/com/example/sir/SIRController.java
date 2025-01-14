@@ -40,7 +40,7 @@ public class SIRController {
     @FXML
     public void clickOnGraph(MouseEvent mouseEvent) {
         if(createNodeOnClick) {
-            Circle circle = new Circle(mouseEvent.getX(), mouseEvent.getY(), 10, Paint.valueOf("blue"));
+            Circle circle = new Circle(mouseEvent.getX(), mouseEvent.getY(), 10);
             graph.addNode();
             int circleID = graph.numNodes()-1;
             circle.setId("C"+circleID);
@@ -52,7 +52,7 @@ public class SIRController {
                         graph.addEdge(vertexSelected, circleID, 0.01f);
                         graph.addEdge(circleID, vertexSelected, 0.01f);
                         Line line = createLine(nodeSelected.getCenterX(), nodeSelected.getCenterY(),
-                        circle.getCenterX(), circle.getCenterY());
+                        circle.getCenterX(), circle.getCenterY(), circle.getRadius());
                         cityGraph.getChildren().add(line);
                         // deselect everything
                         resetSelection();
@@ -61,13 +61,13 @@ public class SIRController {
                     selectedNode = true;
                     vertexSelected = circleID;
                     nodeSelected = circle;
-                    circle.setStroke(Paint.valueOf("black"));
-                    circle.setStrokeWidth(2);
+                    circle.setFill(Paint.valueOf("black"));
                 }
 
             });
             circles.add(circle);
             cityGraph.getChildren().add(circle);
+            circle.getStyleClass().add("node");
         }
     }
 
@@ -95,18 +95,29 @@ public class SIRController {
     private void resetSelection() {
         selectedNode = false;
         vertexSelected=-1;
-        nodeSelected.setStrokeWidth(0);
+        nodeSelected.setFill(Paint.valueOf("rgba(0,0,0,0)"));
         nodeSelected = null;
+
     }
 
-    private Line createLine(double sx, double sy, double ex, double ey) {
+    private Line createLine(double sx, double sy, double ex, double ey, double r) {
         Line line = new Line();
+        double diffX = ex-sx;
+        double diffY = ey-sy;
+        double size = Math.sqrt(diffX*diffX+diffY*diffY);
+        diffX /= size;
+        diffY /= size;
+        sx = sx + r * diffX;
+        sy = sy + r * diffY;
+        ex = ex - r*diffX;
+        ey = ey - r*diffY;
         line.setStartX(sx);
         line.setStartY(sy);
         line.setEndX(ex);
         line.setEndY(ey);
         line.setStrokeWidth(3);
-        line.setFill(Paint.valueOf("black"));
+        line.setFill(Paint.valueOf("red"));
+        line.setStroke(Paint.valueOf("red"));
         return line;
     }
 

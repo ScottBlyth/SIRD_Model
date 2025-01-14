@@ -13,7 +13,6 @@ public class GraphFactory {
     public Graph createGraph(String fileName) throws IOException, ParseException {
         Graph graph = new Graph();
         File file = new File(fileName);
-
         if(file.exists()) {
             Scanner reader = new Scanner(file);
             StringBuilder text = new StringBuilder();
@@ -35,7 +34,6 @@ public class GraphFactory {
                     Integer v = (int) (long) edge.get(0);
                     Float weight = (float) (double) edge.get(1);
                     graph.addEdge(u, v, weight);
-                   // System.out.println(v);
                 }
             }
 
