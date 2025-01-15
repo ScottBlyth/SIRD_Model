@@ -1,9 +1,6 @@
 package com.example.sir;
 
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
-import java.util.ArrayList;
 
 public record Tuple<T, V>(T v1, V v2) {
 
@@ -18,5 +15,4 @@ public record Tuple<T, V>(T v1, V v2) {
         arr.add(v2);
         return arr;
     }
-
 }

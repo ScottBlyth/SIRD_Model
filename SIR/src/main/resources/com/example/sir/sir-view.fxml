@@ -47,6 +47,11 @@
                     </Button>
                     <Button fx:id="saveButton" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#save" prefHeight="60.0" prefWidth="55.0" styleClass="saveButton">
                     </Button>
+               <Button fx:id="loadMap" layoutX="496.0" layoutY="14.0" mnemonicParsing="false" onAction="#load" text="Load Map">
+                  <font>
+                     <Font name="Calibri" size="17.0" />
+                  </font>
+               </Button>
                 </children>
             </Pane>
         </children>

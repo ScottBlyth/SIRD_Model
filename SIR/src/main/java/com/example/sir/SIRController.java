@@ -10,10 +10,13 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class SIRController {
     @FXML
@@ -92,12 +95,22 @@ public class SIRController {
         writer.close();
     }
 
+    @FXML
+    public void load() {
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("json files","json");
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showOpenDialog(null);
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+            System.out.println(chooser.getSelectedFile().getName());
+        }
+    }
+
     private void resetSelection() {
         selectedNode = false;
         vertexSelected=-1;
         nodeSelected.setFill(Paint.valueOf("rgba(0,0,0,0)"));
         nodeSelected = null;
-
     }
 
     private Line createLine(double sx, double sy, double ex, double ey, double r) {
