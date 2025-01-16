@@ -35,6 +35,6 @@
 
 .mapPane {
     -fx-hgap: 20px;
-    -fx-background-color:  #d8d8d8;
+    -fx-background-color:  #e0e0e0;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 10, 0, 0, 0);
 }

@@ -9,14 +9,15 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.io.*;
+import java.util.*;
 
 public class SIRController {
     @FXML
@@ -40,37 +41,38 @@ public class SIRController {
         epiChart.getData().add(series);
     }
 
+    private Circle addCircle(double x, double y) {
+        Circle circle = new Circle(x, y, 10);
+        graph.addNode();
+        int circleID = graph.numNodes()-1;
+        circle.setId("C"+circleID);
+        circle.setOnMouseClicked(mouseEvent1 -> {
+            if(selectedNode){
+                if(vertexSelected == circleID) {
+                    resetSelection();
+                }else {
+                    addLink(nodeSelected, circle, vertexSelected, circleID, 0.01f, 0.01f);
+                    // deselect everything
+                    resetSelection();
+                }
+            }else {
+                selectedNode = true;
+                vertexSelected = circleID;
+                nodeSelected = circle;
+                circle.setFill(Paint.valueOf("black"));
+            }
+
+        });
+        circles.add(circle);
+        cityGraph.getChildren().add(circle);
+        circle.getStyleClass().add("node");
+        return circle;
+    }
+
     @FXML
     public void clickOnGraph(MouseEvent mouseEvent) {
         if(createNodeOnClick) {
-            Circle circle = new Circle(mouseEvent.getX(), mouseEvent.getY(), 10);
-            graph.addNode();
-            int circleID = graph.numNodes()-1;
-            circle.setId("C"+circleID);
-            circle.setOnMouseClicked(mouseEvent1 -> {
-                if(selectedNode){
-                    if(vertexSelected == circleID) {
-                        resetSelection();
-                    }else {
-                        graph.addEdge(vertexSelected, circleID, 0.01f);
-                        graph.addEdge(circleID, vertexSelected, 0.01f);
-                        Line line = createLine(nodeSelected.getCenterX(), nodeSelected.getCenterY(),
-                        circle.getCenterX(), circle.getCenterY(), circle.getRadius());
-                        cityGraph.getChildren().add(line);
-                        // deselect everything
-                        resetSelection();
-                    }
-                }else {
-                    selectedNode = true;
-                    vertexSelected = circleID;
-                    nodeSelected = circle;
-                    circle.setFill(Paint.valueOf("black"));
-                }
-
-            });
-            circles.add(circle);
-            cityGraph.getChildren().add(circle);
-            circle.getStyleClass().add("node");
+            addCircle(mouseEvent.getX(), mouseEvent.getY());
         }
     }
 
@@ -96,14 +98,51 @@ public class SIRController {
     }
 
     @FXML
-    public void load() {
-        JFileChooser chooser = new JFileChooser();
+    public void load() throws IOException, ParseException {
+        JFileChooser chooser = new JFileChooser(".");
         FileNameExtensionFilter filter = new FileNameExtensionFilter("json files","json");
         chooser.setFileFilter(filter);
         int returnVal = chooser.showOpenDialog(null);
         if(returnVal == JFileChooser.APPROVE_OPTION) {
-            System.out.println(chooser.getSelectedFile().getName());
+            String filePath = chooser.getSelectedFile().getPath();
+            File file = new File(filePath);
+            InputStream stream = new FileInputStream(file);
+            String jsonText = new String(stream.readAllBytes());
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) parser.parse(jsonText);
+            // close stream/file
+            stream.close();
+            Map<String, Circle> circleMap = new HashMap();
+            for(String key : (Set<String>) jsonObject.keySet()) {
+                JSONObject node = (JSONObject) jsonObject.get(key);
+                JSONArray arr = (JSONArray) node.get("position");
+                Circle circle = addCircle((double) arr.get(0), (double) arr.get(1));
+                circleMap.put(key, circle);
+            }
+            // adding the links/edges
+            for(String key : (Set<String>) jsonObject.keySet()) {
+                JSONObject node = (JSONObject) jsonObject.get(key);
+                JSONArray neighbours = (JSONArray) node.get("neighbours");
+                for(Object tuple : neighbours) {
+                    JSONArray edge = (JSONArray) tuple;
+                    Integer v = (int) (long) edge.get(0);
+                    double weight = (double) edge.get(1);
+                    Circle first = circleMap.get(key);
+                    Circle second =  circleMap.get(String.valueOf(v));
+                    // not correct!!!
+                    addLink(first, second, Integer.parseInt(key), v, (float) weight, (float) weight);
+                }
+            }
+
         }
+    }
+
+    private void addLink(Circle firstNode, Circle secondNode, Integer u, Integer v, float weight1, float weight2) {
+        graph.addEdge(u, v, weight1);
+        graph.addEdge(v, u, weight2);
+        Line line = createLine(firstNode.getCenterX(), firstNode.getCenterY(),
+                secondNode.getCenterX(), secondNode.getCenterY(), secondNode.getRadius());
+        cityGraph.getChildren().add(line);
     }
 
     private void resetSelection() {
