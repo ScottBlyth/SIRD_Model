@@ -51,7 +51,8 @@ public class SIRController {
                 if(vertexSelected == circleID) {
                     resetSelection();
                 }else {
-                    addLink(nodeSelected, circle, vertexSelected, circleID, 0.01f, 0.01f);
+                    addLink(nodeSelected, circle, vertexSelected, circleID, 0.01f);
+                    addLink(nodeSelected, circle, circleID, vertexSelected, 0.01f);
                     // deselect everything
                     resetSelection();
                 }
@@ -128,21 +129,21 @@ public class SIRController {
                     Integer v = (int) (long) edge.get(0);
                     double weight = (double) edge.get(1);
                     Circle first = circleMap.get(key);
-                    Circle second =  circleMap.get(String.valueOf(v));
-                    // not correct!!!
-                    addLink(first, second, Integer.parseInt(key), v, (float) weight, (float) weight);
+                    Circle second = circleMap.get(String.valueOf(v));
+                    addLink(first, second, Integer.parseInt(key), v, (float) weight);
                 }
             }
 
         }
     }
 
-    private void addLink(Circle firstNode, Circle secondNode, Integer u, Integer v, float weight1, float weight2) {
+    private void addLink(Circle firstNode, Circle secondNode, Integer u, Integer v, float weight1) {
+        if(!graph.hasEdge(u,v) && !graph.hasEdge(v, u)) {
+            Line line = createLine(firstNode.getCenterX(), firstNode.getCenterY(),
+                    secondNode.getCenterX(), secondNode.getCenterY(), secondNode.getRadius());
+            cityGraph.getChildren().add(line);
+        }
         graph.addEdge(u, v, weight1);
-        graph.addEdge(v, u, weight2);
-        Line line = createLine(firstNode.getCenterX(), firstNode.getCenterY(),
-                secondNode.getCenterX(), secondNode.getCenterY(), secondNode.getRadius());
-        cityGraph.getChildren().add(line);
     }
 
     private void resetSelection() {
