@@ -30,6 +30,10 @@ public class Graph {
         return populations.get(u);
     }
 
+    public void setPopulation(Integer u, Integer population) {
+        populations.set(u, population);
+    }
+
     public void changeWeight(Integer u, Integer v, Float weight) {
         // find edge
         Optional<Tuple<Integer, Float>> edge = nodes.get(u).stream().filter(t -> Objects.equals(t.v1(), v)).findFirst();

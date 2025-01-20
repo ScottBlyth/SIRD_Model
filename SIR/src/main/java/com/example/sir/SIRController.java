@@ -1,10 +1,13 @@
 package com.example.sir;
 
 
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
@@ -24,13 +27,11 @@ import java.util.List;
 
 public class SIRController {
     @FXML
-    private javafx.scene.control.TextField populationText;
+    private TextFieldClass populationText;
     @FXML
     private LineChart<Number, Number> epiChart;
     @FXML
     private Pane cityGraph;
-
-
 
     @FXML
 
@@ -50,6 +51,7 @@ public class SIRController {
         series.getData().add(new XYChart.Data<>(2,3));
         series.setName("Infections");
         epiChart.getData().add(series);
+        populationText.setGraph(graph);
     }
 
     private Circle addCircle(double x, double y) {
@@ -76,7 +78,14 @@ public class SIRController {
             if(editParams) {
                 populationText.setText(graph.getPopulation(circleID).toString());
            //     populationText.setLocation((int) circle.getCenterX(), (int) circle.getCenterY());
-
+                populationText.setOnKeyPressed(new EventHandler<KeyEvent>() {
+                    @Override
+                    public void handle(KeyEvent keyEvent) {
+                        if(keyEvent.getCode() == KeyCode.ENTER) {
+                            populationText.ChangePopulation(circleID);
+                        }
+                    }
+                });
             }
 
         });
