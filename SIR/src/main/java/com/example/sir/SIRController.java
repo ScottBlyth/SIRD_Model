@@ -2,6 +2,7 @@ package com.example.sir;
 
 
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.input.MouseEvent;
@@ -9,6 +10,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.text.Text;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -18,15 +20,24 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
 public class SIRController {
+    @FXML
+    private javafx.scene.control.TextField populationText;
     @FXML
     private LineChart<Number, Number> epiChart;
     @FXML
     private Pane cityGraph;
+
+
+
+    @FXML
+
     private boolean createNodeOnClick = false;
 
     private boolean selectedNode = false;
+    private boolean editParams = false;
     private Integer vertexSelected = -1;
     private Circle nodeSelected;
     private final Graph graph = new Graph();
@@ -62,12 +73,22 @@ public class SIRController {
                 nodeSelected = circle;
                 circle.setFill(Paint.valueOf("black"));
             }
+            if(editParams) {
+                populationText.setText(graph.getPopulation(circleID).toString());
+           //     populationText.setLocation((int) circle.getCenterX(), (int) circle.getCenterY());
+
+            }
 
         });
         circles.add(circle);
         cityGraph.getChildren().add(circle);
         circle.getStyleClass().add("node");
         return circle;
+    }
+
+    @FXML
+    public void editParameters() {
+        editParams = true;
     }
 
     @FXML
@@ -173,5 +194,4 @@ public class SIRController {
         line.setStroke(Paint.valueOf("red"));
         return line;
     }
-
 }
