@@ -26,6 +26,13 @@ public class Graph {
         nodes.get(u).add(new Tuple<>(v, weight));
     }
 
+    public Float getWeight(Integer u, Integer v) throws Exception {
+        if(!this.hasEdge(u,v)) {
+            throw new Exception("edge doesn't exist");
+        }
+        return nodes.get(u).stream().filter(t -> Objects.equals(t.v1(), v)).findFirst().get().v2();
+    }
+
     public Integer getPopulation(Integer u) {
         return populations.get(u);
     }

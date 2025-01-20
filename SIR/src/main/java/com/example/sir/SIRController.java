@@ -44,6 +44,8 @@ public class SIRController {
     private final Graph graph = new Graph();
     private List<Circle> circles = new ArrayList<>();
 
+    private Mode mode = Mode.ADD_NODE;
+
     @FXML
     public void initialize() {
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
@@ -64,10 +66,23 @@ public class SIRController {
                 if(vertexSelected == circleID) {
                     resetSelection();
                 }else {
-                    addLink(nodeSelected, circle, vertexSelected, circleID, 0.01f);
-                    addLink(nodeSelected, circle, circleID, vertexSelected, 0.01f);
-                    // deselect everything
-                    resetSelection();
+                    if(mode == Mode.LINK) {
+                        addLink(nodeSelected, circle, vertexSelected, circleID, 0.01f);
+                        addLink(nodeSelected, circle, circleID, vertexSelected, 0.01f);
+                        // deselect everything
+                        resetSelection();
+                    } else if (mode == Mode.EDIT_EDGES) {
+                        try {
+                            populationText.setText(graph.getWeight(vertexSelected, circleID).toString());
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                        populationText.setOnKeyPressed(keyEvent -> {
+                            if(keyEvent.getCode() == KeyCode.ENTER) {
+                                populationText.changeWeight(vertexSelected,  circleID);
+                            }
+                        });
+                    }
                 }
             }else {
                 selectedNode = true;
@@ -75,15 +90,11 @@ public class SIRController {
                 nodeSelected = circle;
                 circle.setFill(Paint.valueOf("black"));
             }
-            if(editParams) {
+            if(mode == Mode.EDIT_NODE) {
                 populationText.setText(graph.getPopulation(circleID).toString());
-           //     populationText.setLocation((int) circle.getCenterX(), (int) circle.getCenterY());
-                populationText.setOnKeyPressed(new EventHandler<KeyEvent>() {
-                    @Override
-                    public void handle(KeyEvent keyEvent) {
-                        if(keyEvent.getCode() == KeyCode.ENTER) {
-                            populationText.ChangePopulation(circleID);
-                        }
+                populationText.setOnKeyPressed(keyEvent -> {
+                    if(keyEvent.getCode() == KeyCode.ENTER) {
+                        populationText.ChangePopulation(circleID);
                     }
                 });
             }
@@ -97,24 +108,29 @@ public class SIRController {
 
     @FXML
     public void editParameters() {
-        editParams = true;
+        mode = Mode.EDIT_NODE;
     }
 
     @FXML
     public void clickOnGraph(MouseEvent mouseEvent) {
-        if(createNodeOnClick) {
+        if(mode == Mode.ADD_NODE) {
             addCircle(mouseEvent.getX(), mouseEvent.getY());
         }
     }
 
     @FXML
     public void toggleCreateNode() {
-        createNodeOnClick = true;
+        mode = Mode.ADD_NODE;
     }
 
     @FXML
     public void toggleCreateLink() {
-        createNodeOnClick = false;
+        mode = Mode.LINK;
+    }
+
+    @FXML
+    public void toggleReadEdge() {
+        mode = Mode.EDIT_EDGES;
     }
 
     @FXML
@@ -144,11 +160,14 @@ public class SIRController {
             // close stream/file
             stream.close();
             Map<String, Circle> circleMap = new HashMap();
+            Integer i = 0;
             for(String key : (Set<String>) jsonObject.keySet()) {
                 JSONObject node = (JSONObject) jsonObject.get(key);
                 JSONArray arr = (JSONArray) node.get("position");
                 Circle circle = addCircle((double) arr.get(0), (double) arr.get(1));
                 circleMap.put(key, circle);
+                graph.setPopulation(i, (int) (long) node.get("population"));
+                i++;
             }
             // adding the links/edges
             for(String key : (Set<String>) jsonObject.keySet()) {

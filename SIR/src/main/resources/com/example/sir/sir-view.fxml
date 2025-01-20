@@ -54,11 +54,16 @@
                      <Font name="Calibri" size="17.0" />
                   </font>
                </Button>
-               <Button fx:id="loadMap1" layoutX="364.0" layoutY="14.0" mnemonicParsing="false" onAction="#editParameters" text="Edit Parameters">
+               <Button fx:id="read_node" layoutX="390.0" layoutY="14.0" mnemonicParsing="false" onAction="#editParameters" text="Edit Nodes">
                   <font>
                      <Font name="Calibri" size="17.0" />
                   </font>
                </Button>
+                    <Button fx:id="read_edge" layoutX="275.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleReadEdge" text="Edit Edges">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
                <TextFieldClass fx:id="populationText" layoutX="639.0" layoutY="450.0" styleClass="populationText" />
                 </children>
             </Pane>
