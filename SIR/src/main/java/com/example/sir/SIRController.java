@@ -41,7 +41,7 @@ public class SIRController {
     private boolean editParams = false;
     private Integer vertexSelected = -1;
     private Circle nodeSelected;
-    private final Graph graph = new Graph();
+    private Graph graph = new Graph();
     private List<Circle> circles = new ArrayList<>();
 
     private Mode mode = Mode.ADD_NODE;
@@ -134,6 +134,23 @@ public class SIRController {
     }
 
     @FXML
+    public void deleteAllNodes() {
+        for(Circle circle : circles) {
+            Node parent = circle.getParent();
+            if(parent instanceof Pane) {
+                ((Pane) parent).getChildren().remove(circle);
+            }
+        }
+        Node node;
+        while((node = cityGraph.getScene().lookup("#link")) != null) {
+            cityGraph.getChildren().remove(node);
+        }
+        cityGraph.getChildren().remove(node);
+        graph = new Graph();
+        circles = new ArrayList<>();
+    }
+
+    @FXML
     public void save() throws IOException {
         List<Tuple<Double, Double>> positions = new ArrayList<>();
         for(Circle circle : circles) {
@@ -220,6 +237,7 @@ public class SIRController {
         line.setStrokeWidth(3);
         line.setFill(Paint.valueOf("red"));
         line.setStroke(Paint.valueOf("red"));
+        line.setId("link");
         return line;
     }
 }
