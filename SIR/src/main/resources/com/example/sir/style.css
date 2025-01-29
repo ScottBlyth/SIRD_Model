@@ -25,6 +25,7 @@
     -fx-fill: rgba(0,0,0,0);
     -fx-stroke: red;
     -fx-stroke-width: 5;
+    -fx-radius: 300;
 }
 
 .node:selected {

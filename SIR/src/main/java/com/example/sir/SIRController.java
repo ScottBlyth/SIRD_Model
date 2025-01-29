@@ -57,7 +57,7 @@ public class SIRController {
     }
 
     private Circle addCircle(double x, double y) {
-        Circle circle = new Circle(x, y, 10);
+        Circle circle = new Circle(x, y, 25);
         graph.addNode();
         int circleID = graph.numNodes()-1;
         circle.setId("C"+circleID);
@@ -114,6 +114,10 @@ public class SIRController {
     @FXML
     public void clickOnGraph(MouseEvent mouseEvent) {
         if(mode == Mode.ADD_NODE) {
+            selectedNode = false;
+            if(nodeSelected != null) {
+                nodeSelected.setFill(Paint.valueOf("rgba(0,0,0,0)"));
+            }
             addCircle(mouseEvent.getX(), mouseEvent.getY());
         }
     }
@@ -135,6 +139,8 @@ public class SIRController {
 
     @FXML
     public void deleteAllNodes() {
+        selectedNode = false;
+        nodeSelected = null;
         for(Circle circle : circles) {
             Node parent = circle.getParent();
             if(parent instanceof Pane) {

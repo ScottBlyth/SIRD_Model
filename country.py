@@ -11,6 +11,7 @@ from numpy.linalg import matrix_power
 from pprint import pprint
 import math
 from scipy.integrate import odeint
+from monte_carlo_markov import stochastic_iteration
 
 # utils 
 
@@ -27,6 +28,8 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
     i = 0
     events,event_consequences = y.get_events() 
     p_n = len(events)
+    day_passed = False
+    t_ = 1
     while t<t_max and i <= max_iter:
         events,event_consequences = y.get_events()
         p = propensities(t, p_n, events=events)
@@ -38,7 +41,11 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
         event, dt = event_consequences[idx], tte[idx]
         event(t)
         t += dt    
+        if t > t_: 
+            y.immigration()
+            t_ += 1
         i += 1
+    print(t)
 
 time_to_event = lambda p: (-1/p)*np.log(np.random.random())
 
@@ -48,6 +55,49 @@ def propensities(t, p_n, events):
         e = event(t=t)
         e_.append(e*p_n)
     return e_
+
+class GraphWorld:
+    def __init__(self, Q, populations, infected, disease,  mu):
+        nodes = []
+        n = len(populations)
+        for i in range(n):
+            y0 = np.array([populations[i], infected[0], 0,  0])
+            c = Country(i, 0, y0, disease, plot=True)
+            nodes.append(c)
+        self.Q = Q
+        self.nodes = nodes 
+        self.mu = mu
+        self.props = None
+        self.events = None
+        
+    def get_events(self):
+        if self.props is not None:
+            return self.props,self.events
+        props = []
+        events = []
+        for c in self.nodes: 
+            p,e = c.get_events() 
+            props += list(p) 
+            events += list(e)
+        props = np.array(props)
+        events = np.array(events)
+        # cache propensity and event functions
+        self.props = props 
+        self.events = events
+        return props,events
+    
+    def immigration(self):
+        # susceptible
+        u_s = np.array([c.current[0] for c in self.nodes])
+        u_i = np.array([c.current[1] for c in self.nodes])
+        u_r = np.array([c.current[2] for c in self.nodes])
+        next_u_s = stochastic_iteration(self.Q, u_s, k=2)
+        next_u_i = stochastic_iteration(self.Q, u_i, k=2)
+        next_u_r = stochastic_iteration(self.Q, u_r, k=2)
+        for c in self.nodes:
+            c.current[0] = next_u_s[c.id]
+            c.current[1] = next_u_i[c.id]
+
 
 class Country:
     mu = 5
@@ -122,10 +172,10 @@ class Country:
         # computes the propensities and events for 
         # infection spread within this country. 
         S,I,R,D = self.current
-        l1,l2,l3,l4 = self.disease.get_params()
+        l1,l2,l3,l4 = self.disease.get_params()/self.total_population
         # the infectivity, which is moving people from S to I,
         # is reduced by a factor self.lockdown_factor
-        S_to_I = lambda t : l1*self.get_info()[0]*self.get_info()[1]*self.lockdown_factor
+        S_to_I = lambda t : l1*self.get_info()[0]*self.get_info()[1]
         I_to_R = lambda t : l2*self.get_info()[1]
         R_to_S = lambda t : l4*self.get_info()[2]
         I_to_D = lambda t : l3*self.get_info()[1]
@@ -171,12 +221,8 @@ class Country:
     # line up with propensities of the same index in propensities
     def get_events(self): 
         p1,e1 = self.get_SIRD_events()
-        p2,e2 = self.country_to_country()
-        if len(p2) == 0:
-            return p1,e1
-        p = np.concatenate([p1,p2])
-        e = np.concatenate([e1,e2])
-        return p,e
+        #p2,e2 = self.country_to_country()
+        return p1,e1
     
 def random_interval(i, j):
     return (j-i)*random()+i 
