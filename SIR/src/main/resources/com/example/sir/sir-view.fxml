@@ -70,8 +70,10 @@
                         </font>
                     </Button>
                <TextFieldClass fx:id="populationText" layoutX="639.0" layoutY="450.0" styleClass="populationText" />
-               <Text>
-
+               <Text fx:id="selectText" layoutX="600.0" layoutY="450.0" strokeType="OUTSIDE" strokeWidth="0.0" text="?,?" wrappingWidth="208.28509140014648">
+                   <font>
+                       <Font name="Calibri" size="20.0" />
+                   </font>
                </Text>
                 </children>
             </Pane>

@@ -97,6 +97,7 @@ class GraphWorld:
         for c in self.nodes:
             c.current[0] = next_u_s[c.id]
             c.current[1] = next_u_i[c.id]
+            c.current[2] = next_u_r[c.id]
 
 
 class Country:
@@ -111,7 +112,7 @@ class Country:
         self.birth_rate = birth_rate
         self.neighbours = []
         self.id = id
-        self.history = np.array([y_0])
+        self.history = None
         self.times = [0]
         self.plot = plot
         self.closed_borders = False 
@@ -152,6 +153,9 @@ class Country:
         # save this change
         if self.plot:
             self.times.append(t)
+            if self.history is None:
+                self.history = np.array([self.current])
+                return
             self.history = np.vstack([self.history, self.get_info()])
       
     # moves person from this country in the self.current[SIRD_index] box
@@ -166,13 +170,18 @@ class Country:
         # save this change
         if self.plot:
             self.times.append(t)
+            if self.history is None:
+                self.history = np.array([self.current])
+                return
             self.history = np.vstack([self.history, self.get_info()])
     
     def get_SIRD_events(self): 
         # computes the propensities and events for 
         # infection spread within this country. 
         S,I,R,D = self.current
-        l1,l2,l3,l4 = self.disease.get_params()/self.total_population
+        l1,l2,l3,l4 = self.disease.get_params()
+        l1 = l1/self.total_population
+        l2 = l2/self.total_population
         # the infectivity, which is moving people from S to I,
         # is reduced by a factor self.lockdown_factor
         S_to_I = lambda t : l1*self.get_info()[0]*self.get_info()[1]

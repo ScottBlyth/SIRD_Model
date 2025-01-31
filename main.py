@@ -10,6 +10,8 @@ import numpy as np
 from monte_carlo_markov import stochastic_iteration
 from country import GraphWorld, gillespie
 from disease import disease
+import socket
+
 
 def load_city_graph(jsonString):
     obj = json.loads(jsonString)
@@ -32,8 +34,9 @@ def load_model(jsonString, disease):
 if __name__ == "__main__":
     with open("SIR/map.json") as file:
         string = file.read()
-    d = disease(0.03, 0.01, 0.001, 0.0005)
+    d = disease(1, 200, 0.1, 0.01)
     model = load_model(string, d)
+
     model.nodes[0].current[1] = 10
-    gillespie(model, 0)
+    gillespie(model, 0, t_max=365, max_iter=10**8)
     

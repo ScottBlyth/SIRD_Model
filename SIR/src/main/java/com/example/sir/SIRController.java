@@ -1,13 +1,11 @@
 package com.example.sir;
 
 
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
@@ -34,11 +32,9 @@ public class SIRController {
     private Pane cityGraph;
 
     @FXML
-
-    private boolean createNodeOnClick = false;
+    private Text selectText;
 
     private boolean selectedNode = false;
-    private boolean editParams = false;
     private Integer vertexSelected = -1;
     private Circle nodeSelected;
     private Graph graph = new Graph();
@@ -62,6 +58,7 @@ public class SIRController {
         int circleID = graph.numNodes()-1;
         circle.setId("C"+circleID);
         circle.setOnMouseClicked(mouseEvent1 -> {
+            System.out.println(circleID);
             if(selectedNode){
                 if(vertexSelected == circleID) {
                     resetSelection();
@@ -72,6 +69,7 @@ public class SIRController {
                         // deselect everything
                         resetSelection();
                     } else if (mode == Mode.EDIT_EDGES) {
+                        selectText.setText(vertexSelected+","+circleID);
                         try {
                             populationText.setText(graph.getWeight(vertexSelected, circleID).toString());
                         } catch (Exception e) {
@@ -84,6 +82,7 @@ public class SIRController {
                         });
                     }
                 }
+                // else selected node
             }else {
                 selectedNode = true;
                 vertexSelected = circleID;
@@ -114,10 +113,7 @@ public class SIRController {
     @FXML
     public void clickOnGraph(MouseEvent mouseEvent) {
         if(mode == Mode.ADD_NODE) {
-            selectedNode = false;
-            if(nodeSelected != null) {
-                nodeSelected.setFill(Paint.valueOf("rgba(0,0,0,0)"));
-            }
+            resetSelection();
             addCircle(mouseEvent.getX(), mouseEvent.getY());
         }
     }
@@ -139,8 +135,7 @@ public class SIRController {
 
     @FXML
     public void deleteAllNodes() {
-        selectedNode = false;
-        nodeSelected = null;
+        resetSelection();
         for(Circle circle : circles) {
             Node parent = circle.getParent();
             if(parent instanceof Pane) {
@@ -219,6 +214,9 @@ public class SIRController {
     }
 
     private void resetSelection() {
+        if(!selectedNode) {
+            return;
+        }
         selectedNode = false;
         vertexSelected=-1;
         nodeSelected.setFill(Paint.valueOf("rgba(0,0,0,0)"));

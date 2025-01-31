@@ -27,12 +27,12 @@ def stochastic_iteration(Q, u, k=2):
         Q_new[i,i] = 1 - np.sum(Q_new[i,np.arange(n)!=i])
     update = np.zeros(n)
     for i in range(n): 
-        num = int(to_travel[i])
-        for k in range(num):
+        num = int(to_travel[i])+1
+        for _ in range(num):
             next_ = traverse(Q_new, i)
             if next_ != i:
                 update[next_] += 1
                 update[i] -= 1
     u_next += update.astype('int32') 
-    return u_next
+    return abs(u_next)
     
