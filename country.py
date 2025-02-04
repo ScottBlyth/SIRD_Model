@@ -45,7 +45,6 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
             y.immigration()
             t_ += 1
         i += 1
-    print(t)
 
 time_to_event = lambda p: (-1/p)*np.log(np.random.random())
 
@@ -154,9 +153,10 @@ class Country:
         if self.plot:
             self.times.append(t)
             if self.history is None:
-                self.history = np.array([self.current])
+                self.history = [[t, self.get_info()]]
                 return
-            self.history = np.vstack([self.history, self.get_info()])
+            event = [t, self.get_info()]
+            self.history += [event]
       
     # moves person from this country in the self.current[SIRD_index] box
     # to self.neighbours[neighbour] country - travelling mechanic
@@ -180,8 +180,8 @@ class Country:
         # infection spread within this country. 
         S,I,R,D = self.current
         l1,l2,l3,l4 = self.disease.get_params()
-        l1 = l1/self.total_population
-        l2 = l2/self.total_population
+        l1 = l1/(S+I+R)
+        #l2 = l2/self.total_population
         # the infectivity, which is moving people from S to I,
         # is reduced by a factor self.lockdown_factor
         S_to_I = lambda t : l1*self.get_info()[0]*self.get_info()[1]

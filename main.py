@@ -7,11 +7,10 @@ Created on Wed Jan 29 18:29:42 2025
 
 import  json 
 import numpy as np
-from monte_carlo_markov import stochastic_iteration
 from country import GraphWorld, gillespie
 from disease import disease
+from matplotlib import pyplot as plt
 import socket
-
 
 def load_city_graph(jsonString):
     obj = json.loads(jsonString)
@@ -30,13 +29,34 @@ def load_model(jsonString, disease):
     Q,u = load_city_graph(jsonString)
     model = GraphWorld(Q, u, np.zeros(len(u)), disease, 1)
     return model
-    
-if __name__ == "__main__":
-    with open("SIR/map.json") as file:
-        string = file.read()
-    d = disease(1, 200, 0.1, 0.01)
-    model = load_model(string, d)
 
-    model.nodes[0].current[1] = 10
+def get_time(history):
+    return [t for t,points in history]
+
+def get_ith(history, i):
+    return [points[i] for t,points in history]
+
+def plot(history, indices=None):
+    if history is None:
+        return
+    if indices is None:
+        indices = range(4)
+    t = get_time(history)
+    for i in indices:
+        plt.plot(t, get_ith(history, i))
+    
+    
+        
+if __name__ == "__main__":
+    with open("map.json") as file:
+        string = file.read()
+    l1,l2 = 0.5,0.1
+    d = disease(l1,l2, 0.1, 0)
+    model = load_model(string, d)
+    model.nodes[0].current[1] = 2
     gillespie(model, 0, t_max=365, max_iter=10**8)
+    
+    for node in model.nodes:
+        plot(node.history,[0,1])
+    plt.show()
     
