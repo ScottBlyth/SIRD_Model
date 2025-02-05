@@ -107,7 +107,7 @@ class Country:
         # self.current = [S,I,R,D]
         self.current = y_0 
         self.total_population = sum(y_0)
-        self.disease = infection 
+        self.d = infection 
         self.birth_rate = birth_rate
         self.neighbours = []
         self.id = id
@@ -179,7 +179,7 @@ class Country:
         # computes the propensities and events for 
         # infection spread within this country. 
         S,I,R,D = self.current
-        l1,l2,l3,l4 = self.disease.get_params()
+        l1,l2,l3,l4 = self.d.get_params()
         l1 = l1/(S+I+R)
         #l2 = l2/self.total_population
         # the infectivity, which is moving people from S to I,

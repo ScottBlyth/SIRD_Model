@@ -11,6 +11,7 @@ from country import GraphWorld, gillespie
 from disease import disease
 from matplotlib import pyplot as plt
 import socket
+import regex
 
 def load_city_graph(jsonString):
     obj = json.loads(jsonString)
@@ -30,6 +31,20 @@ def load_model(jsonString, disease):
     model = GraphWorld(Q, u, np.zeros(len(u)), disease, 1)
     return model
 
+def listen(port, disease):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+    s.connect(('localhost', port))
+    print("connected...")
+    data = s.recv(1024).decode(errors='ignore')
+    print("Received data...")
+    # read from first "{" 
+    idx = regex.search(r"{.*}$", data)
+    data = data[idx.start():idx.end()+1]
+    print(data)
+    s.close()
+    return load_model(data, disease)
+    
+
 def get_time(history):
     return [t for t,points in history]
 
@@ -48,11 +63,9 @@ def plot(history, indices=None):
     
         
 if __name__ == "__main__":
-    with open("map.json") as file:
-        string = file.read()
     l1,l2 = 0.5,0.1
     d = disease(l1,l2, 0.1, 0)
-    model = load_model(string, d)
+    model = listen(80, d)
     model.nodes[0].current[1] = 2
     gillespie(model, 0, t_max=365, max_iter=10**8)
     

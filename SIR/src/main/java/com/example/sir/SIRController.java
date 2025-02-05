@@ -1,6 +1,7 @@
 package com.example.sir;
 
 
+import com.example.sir.server.PyServer;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
@@ -43,13 +44,16 @@ public class SIRController {
     private Mode mode = Mode.ADD_NODE;
 
     @FXML
-    public void initialize() {
+    public void initialize() throws IOException, ParseException {
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
         series.getData().add(new XYChart.Data<>(1,2));
         series.getData().add(new XYChart.Data<>(2,3));
         series.setName("Infections");
         epiChart.getData().add(series);
         populationText.setGraph(graph);
+        PyServer server = new PyServer(80, graph);
+        Thread thread = new Thread(server);
+        thread.start();
     }
 
     private Circle addCircle(double x, double y) {

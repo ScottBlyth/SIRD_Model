@@ -12,7 +12,7 @@
 <?import com.example.sir.TextFieldClass?>
 
 <ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: black;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.sir.SIRController">
-    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="1080.0" prefWidth="1903.0" style="-fx-background-color: #a9a9a9;" styleClass="mapPane">
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #a9a9a9;" styleClass="mapPane">
         <children>
             <Text layoutX="14.0" layoutY="38.0" strokeType="OUTSIDE" strokeWidth="0.0" text="SIR Model" wrappingWidth="208.28509140014648">
                 <font>
@@ -49,16 +49,16 @@
                     </Button>
                     <Button fx:id="saveButton" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#save" prefHeight="60.0" prefWidth="55.0" styleClass="saveButton">
                     </Button>
-               <Button fx:id="loadMap" layoutX="496.0" layoutY="14.0" mnemonicParsing="false" onAction="#load" text="Load Map">
-                  <font>
-                     <Font name="Calibri" size="17.0" />
-                  </font>
-               </Button>
-               <Button fx:id="read_node" layoutX="390.0" layoutY="14.0" mnemonicParsing="false" onAction="#editParameters" text="Edit Nodes">
-                  <font>
-                     <Font name="Calibri" size="17.0" />
-                  </font>
-               </Button>
+                    <Button fx:id="loadMap" layoutX="496.0" layoutY="14.0" mnemonicParsing="false" onAction="#load" text="Load Map">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
+                    <Button fx:id="read_node" layoutX="390.0" layoutY="14.0" mnemonicParsing="false" onAction="#editParameters" text="Edit Nodes">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
                     <Button fx:id="read_edge" layoutX="275.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleReadEdge" text="Edit Edges">
                         <font>
                             <Font name="Calibri" size="17.0" />
@@ -69,12 +69,12 @@
                             <Font name="Calibri" size="17.0" />
                         </font>
                     </Button>
-               <TextFieldClass fx:id="populationText" layoutX="639.0" layoutY="450.0" styleClass="populationText" />
-               <Text fx:id="selectText" layoutX="600.0" layoutY="450.0" strokeType="OUTSIDE" strokeWidth="0.0" text="?,?" wrappingWidth="208.28509140014648">
-                   <font>
-                       <Font name="Calibri" size="20.0" />
-                   </font>
-               </Text>
+                    <TextFieldClass fx:id="populationText" layoutX="639.0" layoutY="450.0" styleClass="populationText" />
+                    <Text fx:id="selectText" layoutX="600.0" layoutY="450.0" strokeType="OUTSIDE" strokeWidth="0.0" text="?,?" wrappingWidth="208.28509140014648">
+                        <font>
+                            <Font name="Calibri" size="20.0" />
+                        </font>
+                    </Text>
                 </children>
             </Pane>
         </children>

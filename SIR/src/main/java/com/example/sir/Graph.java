@@ -64,7 +64,9 @@ public class Graph {
                 neighbourArray.add(arr);
             }
             iObject.put("neighbours", neighbourArray);
-            iObject.put("position", positions.get(i).toJSon());
+            if(i < positions.size()) {
+                iObject.put("position", positions.get(i).toJSon());
+            }
             iObject.put("population", populations.get(i));
             jsonObject.put(String.valueOf(i), iObject);
             // increment i
@@ -72,4 +74,8 @@ public class Graph {
         }
         return jsonObject;
     }
+    public JSONObject toJson() {
+        return toJson(new ArrayList<>());
+    }
+
 }

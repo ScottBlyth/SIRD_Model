@@ -7,4 +7,6 @@ module com.example.sir {
 
     opens com.example.sir to javafx.fxml;
     exports com.example.sir;
+    exports com.example.sir.server;
+    opens com.example.sir.server to javafx.fxml;
 }
