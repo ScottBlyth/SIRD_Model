@@ -4,5 +4,6 @@ public enum Mode {
     ADD_NODE,
     LINK,
     EDIT_NODE,
-    EDIT_EDGES
+    EDIT_EDGES,
+    PLOT,
 }

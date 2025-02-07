@@ -12,6 +12,7 @@ from disease import disease
 from matplotlib import pyplot as plt
 import socket
 import regex
+import json
 
 def load_city_graph(jsonString):
     obj = json.loads(jsonString)
@@ -36,13 +37,49 @@ def listen(port, disease):
     s.connect(('localhost', port))
     print("connected...")
     data = s.recv(1024).decode(errors='ignore')
+    s.close()
     print("Received data...")
     # read from first "{" 
     idx = regex.search(r"{.*}$", data)
     data = data[idx.start():idx.end()+1]
-    print(data)
-    s.close()
     return load_model(data, disease)
+
+def server(port, d):
+    s = socket.socket()  
+    s.bind(('localhost', port))    
+    s.listen(5)
+    
+    while True:
+        c, addr = s.accept()
+        data = c.recv(1024).decode(errors='ignore')
+        print(data)
+        
+        idx = regex.search(r"num\d+", data)
+        time = int(data[idx.start()+3:idx.end()])
+        print(time)
+        
+        idx = regex.search("{.*}$", data)
+        obj = data[idx.start():idx.end()+1]
+        model = load_model(obj, d)
+        
+        model.nodes[0].current[1] = 2
+        
+        gillespie(model, 0, t_max=time, max_iter=10**8)
+        
+        points = {}
+        for node in model.nodes:
+            points[str(node.id)] = []
+            for p in node.history:
+                p_ = list(p)
+                p_[1] = list(p[1])
+                points[str(node.id)].append(p_)
+        string = json.dumps(points)
+
+        c.send(string.encode("utf-8"))
+        print("Sent!")
+        c.close()
+    s.close()
+        
     
 
 def get_time(history):
@@ -60,11 +97,13 @@ def plot(history, indices=None):
     for i in indices:
         plt.plot(t, get_ith(history, i))
     
-    
+
         
 if __name__ == "__main__":
     l1,l2 = 0.5,0.1
     d = disease(l1,l2, 0.1, 0)
+    server(6666, d)
+    """
     model = listen(80, d)
     model.nodes[0].current[1] = 2
     gillespie(model, 0, t_max=365, max_iter=10**8)
@@ -72,4 +111,4 @@ if __name__ == "__main__":
     for node in model.nodes:
         plot(node.history,[0,1])
     plt.show()
-    
+    """

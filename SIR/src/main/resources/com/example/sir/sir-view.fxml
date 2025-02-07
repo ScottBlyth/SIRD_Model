@@ -5,7 +5,10 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
@@ -19,7 +22,7 @@
                     <Font name="MS Reference Sans Serif" size="30.0" />
                 </font>
             </Text>
-            <LineChart id="epiSpread" fx:id="epiChart" layoutX="952.0" layoutY="29.0" legendSide="TOP" prefHeight="593.0" prefWidth="879.0" title="Epidemic Model">
+            <LineChart id="epiSpread" fx:id="epiChart" layoutX="977.0" layoutY="29.0" legendSide="TOP" prefHeight="524.0" prefWidth="854.0" title="Epidemic Model">
                 <xAxis>
                     <NumberAxis label="Day" side="BOTTOM">
                         <tickLabelFont>
@@ -35,48 +38,72 @@
                     </NumberAxis>
                 </yAxis>
             </LineChart>
-            <Pane fx:id="cityGraph" layoutX="18.0" layoutY="71.0" onMouseClicked="#clickOnGraph" prefHeight="509.0" prefWidth="895.0" styleClass="mapPane">
+            <Pane fx:id="cityGraph" layoutX="29.0" layoutY="44.0" onMouseClicked="#clickOnGraph" prefHeight="509.0" prefWidth="895.0" styleClass="mapPane">
                 <children>
-                    <Button fx:id="createNode" layoutX="750.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleCreateNode" text="Create Node">
-                        <font>
-                            <Font name="Calibri" size="17.0" />
-                        </font>
-                    </Button>
-                    <Button fx:id="linkCreate" layoutX="622.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleCreateLink" text="Create Link">
-                        <font>
-                            <Font name="Calibri" size="17.0" />
-                        </font>
-                    </Button>
                     <Button fx:id="saveButton" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#save" prefHeight="60.0" prefWidth="55.0" styleClass="saveButton">
                     </Button>
-                    <Button fx:id="loadMap" layoutX="496.0" layoutY="14.0" mnemonicParsing="false" onAction="#load" text="Load Map">
-                        <font>
-                            <Font name="Calibri" size="17.0" />
-                        </font>
-                    </Button>
-                    <Button fx:id="read_node" layoutX="390.0" layoutY="14.0" mnemonicParsing="false" onAction="#editParameters" text="Edit Nodes">
-                        <font>
-                            <Font name="Calibri" size="17.0" />
-                        </font>
-                    </Button>
-                    <Button fx:id="read_edge" layoutX="275.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleReadEdge" text="Edit Edges">
-                        <font>
-                            <Font name="Calibri" size="17.0" />
-                        </font>
-                    </Button>
-                    <Button fx:id="delete" layoutX="700.0" layoutY="50.0" mnemonicParsing="false" onAction="#deleteAllNodes" text="Remove Everything">
-                        <font>
-                            <Font name="Calibri" size="17.0" />
-                        </font>
-                    </Button>
                     <TextFieldClass fx:id="populationText" layoutX="639.0" layoutY="450.0" styleClass="populationText" />
-                    <Text fx:id="selectText" layoutX="600.0" layoutY="450.0" strokeType="OUTSIDE" strokeWidth="0.0" text="?,?" wrappingWidth="208.28509140014648">
+                    <Text fx:id="selectText" layoutX="596.0" layoutY="478.0" strokeType="OUTSIDE" strokeWidth="0.0" text="?,?" wrappingWidth="39.832271575927734">
                         <font>
                             <Font name="Calibri" size="20.0" />
                         </font>
                     </Text>
                 </children>
             </Pane>
+         <GridPane alignment="CENTER" layoutX="614.0" layoutY="66.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="123.0" prefWidth="303.0">
+           <columnConstraints>
+             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+           </columnConstraints>
+           <rowConstraints>
+             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+           </rowConstraints>
+            <children>
+                    <Button fx:id="linkCreate" mnemonicParsing="false" onAction="#toggleCreateLink" prefHeight="41.0" prefWidth="174.0" text="Create Link" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
+                    <Button fx:id="createNode" mnemonicParsing="false" onAction="#toggleCreateNode" prefHeight="39.0" prefWidth="158.0" text="Create Node" GridPane.halignment="CENTER">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
+                    <Button fx:id="delete" mnemonicParsing="false" onAction="#deleteAllNodes" prefHeight="134.0" prefWidth="263.0" text="Remove Everything" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
+                    <Button fx:id="read_edge" mnemonicParsing="false" onAction="#toggleReadEdge" prefHeight="37.0" prefWidth="182.0" text="Edit Edges" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
+                    <Button fx:id="read_node" mnemonicParsing="false" onAction="#editParameters" prefHeight="43.0" prefWidth="185.0" text="Edit Nodes" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
+                    <Button fx:id="loadMap" mnemonicParsing="false" onAction="#load" prefHeight="36.0" prefWidth="182.0" text="Load Map" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+                        <font>
+                            <Font name="Calibri" size="17.0" />
+                        </font>
+                    </Button>
+               <Button fx:id="runModel" mnemonicParsing="false" onAction="#computeModel" prefHeight="43.0" prefWidth="198.0" text="Run Model" GridPane.rowIndex="3">
+                  <font>
+                     <Font name="Calibri" size="17.0" />
+                  </font>
+               </Button>
+               <Button fx:id="plotButton" layoutX="130.0" layoutY="75.0" mnemonicParsing="false" onAction="#setPlot" prefHeight="134.0" prefWidth="263.0" text="Plot" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                  <font>
+                     <Font name="Calibri" size="17.0" />
+                  </font>
+               </Button>
+            </children>
+         </GridPane>
         </children>
     </AnchorPane>
 </ScrollPane>

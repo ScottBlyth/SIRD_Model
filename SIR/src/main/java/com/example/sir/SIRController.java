@@ -1,6 +1,7 @@
 package com.example.sir;
 
 
+import com.example.sir.server.PyListener;
 import com.example.sir.server.PyServer;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -43,17 +44,46 @@ public class SIRController {
 
     private Mode mode = Mode.ADD_NODE;
 
+    private final List<Thread> threads = new ArrayList<>();
+    private JSONObject data;
+
     @FXML
-    public void initialize() throws IOException, ParseException {
+    public void initialize() {
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
         series.getData().add(new XYChart.Data<>(1,2));
         series.getData().add(new XYChart.Data<>(2,3));
         series.setName("Infections");
         epiChart.getData().add(series);
         populationText.setGraph(graph);
-        PyServer server = new PyServer(80, graph);
-        Thread thread = new Thread(server);
-        thread.start();
+
+        // need to close thread after window close
+
+    }
+
+    private void plotData(int id) {
+        epiChart.getData().removeLast();
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        JSONArray points = (JSONArray) data.get(String.valueOf(id));
+        double startTime = 1;
+        for(Object array : points) {
+            JSONArray arr = (JSONArray) array;
+            double time = (double) arr.get(0);
+            JSONArray point = (JSONArray) arr.get(1);
+            // lets just plot infections for now
+            if(startTime >= 1) {
+                double infections = (double) point.get(1);
+                series.getData().add(new XYChart.Data<>(time, infections));
+                startTime = 0;
+            }
+            startTime += time;
+        }
+        epiChart.getData().add(series);
+    }
+
+    @FXML
+    public void setPlot() {
+        mode = Mode.PLOT;
+
     }
 
     private Circle addCircle(double x, double y) {
@@ -62,6 +92,9 @@ public class SIRController {
         int circleID = graph.numNodes()-1;
         circle.setId("C"+circleID);
         circle.setOnMouseClicked(mouseEvent1 -> {
+            if(mode == mode.PLOT) {
+                plotData(circleID);
+            }
             System.out.println(circleID);
             if(selectedNode){
                 if(vertexSelected == circleID) {
@@ -110,6 +143,16 @@ public class SIRController {
     }
 
     @FXML
+    public void computeModel() {
+        PyListener listener = new PyListener(6666, "200", graph);
+        Thread thread = new Thread(() -> {
+            listener.run();
+            data = listener.getData();
+        });
+        thread.start();
+    }
+
+    @FXML
     public void editParameters() {
         mode = Mode.EDIT_NODE;
     }
@@ -150,7 +193,6 @@ public class SIRController {
         while((node = cityGraph.getScene().lookup("#link")) != null) {
             cityGraph.getChildren().remove(node);
         }
-        cityGraph.getChildren().remove(node);
         graph = new Graph();
         circles = new ArrayList<>();
     }
@@ -181,7 +223,7 @@ public class SIRController {
             JSONObject jsonObject = (JSONObject) parser.parse(jsonText);
             // close stream/file
             stream.close();
-            Map<String, Circle> circleMap = new HashMap();
+            Map<String, Circle> circleMap = new HashMap<>();
             Integer i = 0;
             for(String key : (Set<String>) jsonObject.keySet()) {
                 JSONObject node = (JSONObject) jsonObject.get(key);

@@ -2,7 +2,6 @@ package com.example.sir.server;
 
 import com.example.sir.Graph;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -10,14 +9,14 @@ import java.net.Socket;
 
 public class PyServer implements Runnable {
 
-    private int port;
+    private final int port;
     private ServerSocket socket;
     private Socket s;
     private DataOutputStream out;
-    private Graph graph;
+    private final Graph graph;
     private boolean toClose = false;
 
-    public PyServer(int port, Graph graph) throws IOException, ParseException {
+    public PyServer(int port, Graph graph) {
         this.port = port;
         this.graph = graph;
     }
