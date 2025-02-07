@@ -40,6 +40,7 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
         idx = np.random.choice(range(len(p)), p=p_rel)
         event, dt = event_consequences[idx], tte[idx]
         event(t)
+        dt = min(dt, 1)
         t += dt    
         if t > t_: 
             y.immigration()

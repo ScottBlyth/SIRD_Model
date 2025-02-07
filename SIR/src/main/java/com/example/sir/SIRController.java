@@ -43,8 +43,6 @@ public class SIRController {
     private List<Circle> circles = new ArrayList<>();
 
     private Mode mode = Mode.ADD_NODE;
-
-    private final List<Thread> threads = new ArrayList<>();
     private JSONObject data;
 
     @FXML
@@ -98,32 +96,33 @@ public class SIRController {
         Circle circle = new Circle(x, y, 25);
         graph.addNode();
         int circleID = graph.numNodes()-1;
+        System.out.println(circleID);
         circle.setId("C"+circleID);
         circle.setOnMouseClicked(mouseEvent1 -> {
-            if(mode == mode.PLOT) {
+            if(mode == Mode.PLOT) {
                 plotData(circleID);
             }
-            System.out.println(circleID);
             if(selectedNode){
                 if(vertexSelected == circleID) {
                     resetSelection();
                 }else {
                     if(mode == Mode.LINK) {
-                        addLink(nodeSelected, circle, vertexSelected, circleID, 0.01f);
-                        addLink(nodeSelected, circle, circleID, vertexSelected, 0.01f);
+                        addLink(nodeSelected, circle, vertexSelected, circleID, 0.0001f);
+                        addLink(nodeSelected, circle, circleID, vertexSelected, 0.0001f);
                         // deselect everything
                         resetSelection();
                     } else if (mode == Mode.EDIT_EDGES) {
-                        selectText.setText(vertexSelected+","+circleID);
+                        int v = vertexSelected;
+                        selectText.setText(v+","+circleID);
                         try {
                             populationText.setText(graph.getWeight(vertexSelected, circleID).toString());
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
                         populationText.setOnKeyPressed(keyEvent -> {
-
-                                populationText.changeWeight(vertexSelected,  circleID);
+                                populationText.changeWeight(v,  circleID);
                         });
+                        resetSelection();
                     }
                 }
                 // else selected node

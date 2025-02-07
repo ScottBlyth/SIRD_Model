@@ -51,6 +51,8 @@ def server(port, d):
     
     while True:
         c, addr = s.accept()
+        if input("accept "+str(addr)+"?") != 'y':
+            continue
         data = c.recv(1024).decode(errors='ignore')
         
         idx = regex.search(r"num\d+", data)
@@ -62,6 +64,7 @@ def server(port, d):
         model = load_model(obj, d)
         
         model.nodes[0].current[1] = 2
+        print(model.nodes[0].id)
         
         gillespie(model, 0, t_max=time, max_iter=10**8)
         
@@ -100,7 +103,7 @@ def plot(history, indices=None):
         
 if __name__ == "__main__":
     l1,l2 = 0.5,0.1
-    d = disease(l1,l2, 0.1, 0)
+    d = disease(l1,l2, 0.1, 0.001)
     server(6666, d)
     """
     model = listen(80, d)

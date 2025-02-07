@@ -10,13 +10,20 @@ public class TextFieldClass extends javafx.scene.control.TextField  {
     }
     public void ChangePopulation(Integer circleID) {
         graph.setPopulation(circleID, Integer.parseInt(getText()));
+        System.out.println(graph.getPopulation(circleID));
     }
     public void changeWeight(Integer u, Integer v) {
-        graph.changeWeight(u, v, Float.parseFloat(getText()));
+        try {
+            graph.changeWeight(u, v, Float.parseFloat(getText()));
+        }catch (Exception e){
+
+        }
+        /*
         try {
             System.out.println(graph.getWeight(u,v));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        */
     }
 }

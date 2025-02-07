@@ -8,21 +8,17 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.net.Socket;
 
-import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class PyListener implements Runnable {
 
     private Socket socket;
     private final int port;
-    private final String nodeReq;
+    private final String time;
     private JSONObject data;
     private final Graph graph;
 
-    public PyListener(int port, String nodeReq, Graph graph) {
+    public PyListener(int port, String time, Graph graph) {
         this.port = port;
-        this.nodeReq = nodeReq;
+        this.time = time;
         this.graph = graph;
     }
 
@@ -36,7 +32,7 @@ public class PyListener implements Runnable {
             // requests data
             socket = new Socket("localhost", port);
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            out.writeUTF("num"+nodeReq+graph.toJson().toJSONString());
+            out.writeUTF("num"+ time +graph.toJson().toJSONString());
             out.flush();
 
             System.out.println("Sent Request!");
@@ -45,13 +41,10 @@ public class PyListener implements Runnable {
 
             StringBuilder builder = new StringBuilder();
             String dataString = "";
-
             while((dataString = reader.readLine()) != null) {
                 builder.append(dataString);
             }
-
             dataString = builder.toString();
-
             System.out.println("reading...");
 
             reader.close();
