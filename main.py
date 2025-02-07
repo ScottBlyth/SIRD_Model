@@ -52,7 +52,6 @@ def server(port, d):
     while True:
         c, addr = s.accept()
         data = c.recv(1024).decode(errors='ignore')
-        print(data)
         
         idx = regex.search(r"num\d+", data)
         time = int(data[idx.start()+3:idx.end()])

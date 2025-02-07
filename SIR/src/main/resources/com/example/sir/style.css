@@ -39,3 +39,8 @@
   -fx-font-size: 20;
   -fx-background-color: #00bfff;
 }
+
+.chart-series-line {
+    -fx-stroke-width: 2px;
+    -fx-effect: null;
+}

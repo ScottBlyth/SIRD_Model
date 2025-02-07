@@ -13,5 +13,10 @@ public class TextFieldClass extends javafx.scene.control.TextField  {
     }
     public void changeWeight(Integer u, Integer v) {
         graph.changeWeight(u, v, Float.parseFloat(getText()));
+        try {
+            System.out.println(graph.getWeight(u,v));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

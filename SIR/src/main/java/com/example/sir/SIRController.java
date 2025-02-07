@@ -49,27 +49,31 @@ public class SIRController {
 
     @FXML
     public void initialize() {
-        XYChart.Series<Number, Number> series = new XYChart.Series<>();
-        series.getData().add(new XYChart.Data<>(1,2));
-        series.getData().add(new XYChart.Data<>(2,3));
-        series.setName("Infections");
-        epiChart.getData().add(series);
+        epiChart.setCreateSymbols(false);
         populationText.setGraph(graph);
+    }
 
-        // need to close thread after window close
-
+    @FXML
+    public void clearPlot() {
+        while(!epiChart.getData().isEmpty()) {
+            epiChart.getData().removeLast();
+        }
     }
 
     private void plotData(int id) {
-        epiChart.getData().removeLast();
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
         JSONArray points = (JSONArray) data.get(String.valueOf(id));
         double startTime = 1;
         for(Object array : points) {
             JSONArray arr = (JSONArray) array;
-            double time = (double) arr.get(0);
+            double time;
+            try {
+                time = (double) arr.get(0);
+            }catch (Exception e) {
+                time = (double) (long) arr.get(0);
+            }
             JSONArray point = (JSONArray) arr.get(1);
-            // lets just plot infections for now
+            // let us just plot infections for now
             if(startTime >= 1) {
                 double infections = (double) point.get(1);
                 series.getData().add(new XYChart.Data<>(time, infections));
@@ -77,6 +81,10 @@ public class SIRController {
             }
             startTime += time;
         }
+        if(series.getData().isEmpty()) {
+            return;
+        }
+        series.setName("City with id "+id);
         epiChart.getData().add(series);
     }
 
@@ -113,9 +121,8 @@ public class SIRController {
                             throw new RuntimeException(e);
                         }
                         populationText.setOnKeyPressed(keyEvent -> {
-                            if(keyEvent.getCode() == KeyCode.ENTER) {
+
                                 populationText.changeWeight(vertexSelected,  circleID);
-                            }
                         });
                     }
                 }
@@ -129,9 +136,7 @@ public class SIRController {
             if(mode == Mode.EDIT_NODE) {
                 populationText.setText(graph.getPopulation(circleID).toString());
                 populationText.setOnKeyPressed(keyEvent -> {
-                    if(keyEvent.getCode() == KeyCode.ENTER) {
                         populationText.ChangePopulation(circleID);
-                    }
                 });
             }
 
