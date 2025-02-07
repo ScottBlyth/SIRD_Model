@@ -47,25 +47,25 @@ def listen(port, disease):
 def server(port, d):
     s = socket.socket()  
     s.bind(('localhost', port))    
+    print("server started...")
     s.listen(5)
     
     while True:
         c, addr = s.accept()
+        print("Client Accepted!")
         data = c.recv(1024).decode(errors='ignore')
-        
+        print("Received model state...")
         idx = regex.search(r"num\d+", data)
         time = int(data[idx.start()+3:idx.end()])
-        print(time)
         
         idx = regex.search("{.*}$", data)
         obj = data[idx.start():idx.end()+1]
         model = load_model(obj, d)
         
         model.nodes[0].current[1] = 2
-        print(model.nodes[0].id)
         
         gillespie(model, 0, t_max=time, max_iter=10**8)
-        
+        print("Model finished exceution...")
         points = {}
         for node in model.nodes:
             points[str(node.id)] = []

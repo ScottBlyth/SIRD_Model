@@ -118,8 +118,8 @@ public class SIRController {
                         addLink(nodeSelected, circle);
                         addLink(nodeSelected, circle);
 
-                        graph.addEdge(vertexSelected, circleID, 0.0001f);
-                        graph.addEdge(circleID, vertexSelected, 0.0001f);
+                        graph.addEdge(vertexSelected, circleID, 0.01f);
+                        graph.addEdge(circleID, vertexSelected, 0.01f);
                         // deselect everything
                     } else if (mode == Mode.EDIT_EDGES) {
                         int v = vertexSelected;

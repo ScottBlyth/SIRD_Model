@@ -43,20 +43,3 @@ def numpy_iterations(Q, u):
         u_next += update
     return u_next
         
-
-def iteration(Q, u):
-    n = Q.shape[0]
-    update = np.zeros(n)
-    for i in range(n):
-        num = int(u[i])
-        for _ in range(num):
-            next_ = traverse(Q, i)
-            if next_ != i:
-                update[next_] += 1
-                update[i] -= 1
-    u_next = u+update.astype('int32') 
-    return u_next
-    
-def reduced(Q, u, k=5):
-    u_ = u/k 
-    return iteration(Q, u_)*k

@@ -72,7 +72,7 @@
                             <Font name="Calibri" size="17.0" />
                         </font>
                     </Button>
-                    <Button fx:id="delete" mnemonicParsing="false" onAction="#deleteAllNodes" prefHeight="134.0" prefWidth="263.0" text="Remove Everything" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+                    <Button fx:id="delete" mnemonicParsing="false" onAction="#deleteAllNodes" prefHeight="134.0" prefWidth="263.0" text="Clear" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2">
                         <font>
                             <Font name="Calibri" size="17.0" />
                         </font>
