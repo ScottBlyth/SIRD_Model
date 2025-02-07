@@ -11,7 +11,7 @@ from numpy.linalg import matrix_power
 from pprint import pprint
 import math
 from scipy.integrate import odeint
-from monte_carlo_markov import stochastic_iteration
+from monte_carlo_markov import stochastic_iteration, numpy_iterations
 
 # utils 
 
@@ -91,9 +91,9 @@ class GraphWorld:
         u_s = np.array([c.current[0] for c in self.nodes])
         u_i = np.array([c.current[1] for c in self.nodes])
         u_r = np.array([c.current[2] for c in self.nodes])
-        next_u_s = stochastic_iteration(self.Q, u_s, k=2)
-        next_u_i = stochastic_iteration(self.Q, u_i, k=2)
-        next_u_r = stochastic_iteration(self.Q, u_r, k=2)
+        next_u_s = numpy_iterations(self.Q, u_s)
+        next_u_i = numpy_iterations(self.Q, u_i)
+        next_u_r = numpy_iterations(self.Q, u_r)
         for c in self.nodes:
             c.current[0] = next_u_s[c.id]
             c.current[1] = next_u_i[c.id]

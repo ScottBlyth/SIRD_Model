@@ -19,7 +19,6 @@ def load_city_graph(jsonString):
     n = len(obj)
     Q = np.zeros((n,n))
     populations = np.zeros((n,4))
-    print(obj)
     for key in obj:
         u = int(key)
         populations[u] = obj[key]["population"]
@@ -52,8 +51,6 @@ def server(port, d):
     
     while True:
         c, addr = s.accept()
-        if input("accept "+str(addr)+"?") != 'y':
-            continue
         data = c.recv(1024).decode(errors='ignore')
         
         idx = regex.search(r"num\d+", data)
@@ -72,6 +69,8 @@ def server(port, d):
         points = {}
         for node in model.nodes:
             points[str(node.id)] = []
+            if node.history is None:
+                continue
             for p in node.history:
                 p_ = list(p)
                 p_[1] = list(p[1])

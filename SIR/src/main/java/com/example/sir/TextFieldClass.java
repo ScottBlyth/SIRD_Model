@@ -22,12 +22,12 @@ public class TextFieldClass extends javafx.scene.control.TextField  {
         }catch (Exception e){
 
         }
-        /*
+
         try {
             System.out.println(graph.getWeight(u,v));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println(graph.toJson().toJSONString());
         }
-        */
+
     }
 }

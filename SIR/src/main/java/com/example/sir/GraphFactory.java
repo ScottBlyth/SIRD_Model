@@ -23,14 +23,11 @@ public class GraphFactory {
             JSONObject node = (JSONObject) jsonObject.get(key);
             JSONArray population = (JSONArray) node.get("population");
             List<Integer> integers = new ArrayList<>(population.size());
-            int j = 0;
             for(Object obj : population) {
-                Long num = (long) obj;
-                integers.add(num.intValue());
-                j += 1;
+                long num = (long) obj;
+                integers.add((int) num);
             }
             graph.addNode();
-
             graph.setPopulation(i, integers);
             i++;
         }

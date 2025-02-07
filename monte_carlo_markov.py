@@ -8,8 +8,7 @@ Created on Wed Jan 29 13:15:38 2025
 import numpy as np 
 
 def traverse(Q, initial): 
-    next_ =  np.random.choice(np.arange(Q.shape[0]), p=Q[initial])
-    return next_
+    return np.random.choice(np.arange(Q.shape[0]), p=Q[initial])
 
 def stochastic_iteration(Q, u, k=2): 
     n = Q.shape[0]
@@ -30,9 +29,34 @@ def stochastic_iteration(Q, u, k=2):
         num = int(to_travel[i])+1
         for _ in range(num):
             next_ = traverse(Q_new, i)
-            if next_ != i:
+            if next_ != i: 
                 update[next_] += 1
                 update[i] -= 1
     u_next += update.astype('int32') 
     return abs(u_next)
+
+def numpy_iterations(Q, u):
+    n = Q.shape[0]
+    u_next = np.zeros(n)
+    for i in range(n):
+        update = np.random.multinomial(u[i], Q[i])
+        u_next += update
+    return u_next
+        
+
+def iteration(Q, u):
+    n = Q.shape[0]
+    update = np.zeros(n)
+    for i in range(n):
+        num = int(u[i])
+        for _ in range(num):
+            next_ = traverse(Q, i)
+            if next_ != i:
+                update[next_] += 1
+                update[i] -= 1
+    u_next = u+update.astype('int32') 
+    return u_next
     
+def reduced(Q, u, k=5):
+    u_ = u/k 
+    return iteration(Q, u_)*k

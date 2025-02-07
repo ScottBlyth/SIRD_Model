@@ -92,13 +92,19 @@ public class SIRController {
     }
 
     @FXML
-    public void saveData() {
+    public void saveData() throws IOException {
+        JFileChooser chooser = new JFileChooser(".");
+        int returnVal = chooser.showOpenDialog(null);
+        String path = chooser.getSelectedFile().getPath();
+
+        FileWriter writer = new FileWriter(path);
+        writer.write(data.toJSONString());
+        writer.close();
 
     }
 
     private Circle addCircle(int circleID, double x, double y) {
         Circle circle = new Circle(x, y, 25);
-        System.out.println(circleID);
         circle.setId("C"+circleID);
         circle.setOnMouseClicked(mouseEvent1 -> {
             if(mode == Mode.PLOT) {
@@ -115,7 +121,6 @@ public class SIRController {
                         graph.addEdge(vertexSelected, circleID, 0.0001f);
                         graph.addEdge(circleID, vertexSelected, 0.0001f);
                         // deselect everything
-                        resetSelection();
                     } else if (mode == Mode.EDIT_EDGES) {
                         int v = vertexSelected;
                         selectText.setText(v+","+circleID);
@@ -127,8 +132,8 @@ public class SIRController {
                         populationText.setOnKeyPressed(keyEvent -> {
                                 populationText.changeWeight(v,  circleID);
                         });
-                        resetSelection();
                     }
+                    resetSelection();
                 }
                 // else selected node
             }else {
@@ -205,6 +210,7 @@ public class SIRController {
         }
         graph = new Graph();
         circles = new ArrayList<>();
+        populationText.setGraph(graph);
     }
 
     @FXML
@@ -233,6 +239,7 @@ public class SIRController {
             JSONObject jsonObject = (JSONObject) parser.parse(jsonText);
 
             graph = GraphFactory.loadGraph(jsonObject);
+            populationText.setGraph(graph);
             // close stream/file
             stream.close();
             Map<String, Circle> circleMap = new HashMap<>();
