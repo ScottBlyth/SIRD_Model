@@ -42,7 +42,7 @@
                 <children>
                     <Button fx:id="saveButton" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#save" prefHeight="60.0" prefWidth="55.0" styleClass="saveButton">
                     </Button>
-                   <TextFieldClass fx:id="populationText" layoutX="639.0" layoutY="450.0" styleClass="populationText" />
+                    <TextFieldClass fx:id="populationText" layoutX="639.0" layoutY="450.0" styleClass="populationText" />
                     <Text fx:id="selectText" layoutX="596.0" layoutY="478.0" strokeType="OUTSIDE" strokeWidth="0.0" text="?,?" wrappingWidth="39.832271575927734">
                         <font>
                             <Font name="Calibri" size="20.0" />
@@ -105,6 +105,7 @@
             </children>
          </GridPane>
          <Button layoutX="1762.0" layoutY="66.0" mnemonicParsing="false" onAction="#clearPlot" text="Clear" />
+         <Button layoutX="1691.0" layoutY="66.0" mnemonicParsing="false" onAction="#clearPlot" text="Save" />
         </children>
     </AnchorPane>
 </ScrollPane>

@@ -57,11 +57,11 @@ def propensities(t, p_n, events):
     return e_
 
 class GraphWorld:
-    def __init__(self, Q, populations, infected, disease,  mu):
+    def __init__(self, Q, populations, disease,  mu):
         nodes = []
         n = len(populations)
         for i in range(n):
-            y0 = np.array([populations[i], infected[0], 0,  0])
+            y0 = np.array(populations[i])
             c = Country(i, 0, y0, disease, plot=True)
             nodes.append(c)
         self.Q = Q

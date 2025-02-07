@@ -89,13 +89,15 @@ public class SIRController {
     @FXML
     public void setPlot() {
         mode = Mode.PLOT;
+    }
+
+    @FXML
+    public void saveData() {
 
     }
 
-    private Circle addCircle(double x, double y) {
+    private Circle addCircle(int circleID, double x, double y) {
         Circle circle = new Circle(x, y, 25);
-        graph.addNode();
-        int circleID = graph.numNodes()-1;
         System.out.println(circleID);
         circle.setId("C"+circleID);
         circle.setOnMouseClicked(mouseEvent1 -> {
@@ -107,8 +109,11 @@ public class SIRController {
                     resetSelection();
                 }else {
                     if(mode == Mode.LINK) {
-                        addLink(nodeSelected, circle, vertexSelected, circleID, 0.0001f);
-                        addLink(nodeSelected, circle, circleID, vertexSelected, 0.0001f);
+                        addLink(nodeSelected, circle);
+                        addLink(nodeSelected, circle);
+
+                        graph.addEdge(vertexSelected, circleID, 0.0001f);
+                        graph.addEdge(circleID, vertexSelected, 0.0001f);
                         // deselect everything
                         resetSelection();
                     } else if (mode == Mode.EDIT_EDGES) {
@@ -165,7 +170,8 @@ public class SIRController {
     public void clickOnGraph(MouseEvent mouseEvent) {
         if(mode == Mode.ADD_NODE) {
             resetSelection();
-            addCircle(mouseEvent.getX(), mouseEvent.getY());
+            graph.addNode();
+            addCircle(graph.numNodes()-1, mouseEvent.getX(), mouseEvent.getY());
         }
     }
 
@@ -225,17 +231,17 @@ public class SIRController {
             String jsonText = new String(stream.readAllBytes());
             JSONParser parser = new JSONParser();
             JSONObject jsonObject = (JSONObject) parser.parse(jsonText);
+
+            graph = GraphFactory.loadGraph(jsonObject);
             // close stream/file
             stream.close();
             Map<String, Circle> circleMap = new HashMap<>();
-            Integer i = 0;
             for(String key : (Set<String>) jsonObject.keySet()) {
                 JSONObject node = (JSONObject) jsonObject.get(key);
                 JSONArray arr = (JSONArray) node.get("position");
-                Circle circle = addCircle((double) arr.get(0), (double) arr.get(1));
+                int u = Integer.parseInt(key);
+                Circle circle = addCircle(u, (double) arr.get(0), (double) arr.get(1));
                 circleMap.put(key, circle);
-                graph.setPopulation(i, (int) (long) node.get("population"));
-                i++;
             }
             // adding the links/edges
             for(String key : (Set<String>) jsonObject.keySet()) {
@@ -244,23 +250,18 @@ public class SIRController {
                 for(Object tuple : neighbours) {
                     JSONArray edge = (JSONArray) tuple;
                     Integer v = (int) (long) edge.get(0);
-                    double weight = (double) edge.get(1);
                     Circle first = circleMap.get(key);
                     Circle second = circleMap.get(String.valueOf(v));
-                    addLink(first, second, Integer.parseInt(key), v, (float) weight);
+                    addLink(first, second);
                 }
             }
 
         }
     }
 
-    private void addLink(Circle firstNode, Circle secondNode, Integer u, Integer v, float weight1) {
-        if(!graph.hasEdge(u,v) && !graph.hasEdge(v, u)) {
-            Line line = createLine(firstNode.getCenterX(), firstNode.getCenterY(),
-                    secondNode.getCenterX(), secondNode.getCenterY(), secondNode.getRadius());
-            cityGraph.getChildren().add(line);
-        }
-        graph.addEdge(u, v, weight1);
+    private void addLink(Circle firstNode, Circle secondNode) {
+        Line line = createLine(firstNode.getCenterX(), firstNode.getCenterY(), secondNode.getCenterX(), secondNode.getCenterY(), secondNode.getRadius());
+        cityGraph.getChildren().add(line);
     }
 
     private void resetSelection() {

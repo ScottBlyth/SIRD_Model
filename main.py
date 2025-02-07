@@ -18,7 +18,8 @@ def load_city_graph(jsonString):
     obj = json.loads(jsonString)
     n = len(obj)
     Q = np.zeros((n,n))
-    populations = np.zeros(n)
+    populations = np.zeros((n,4))
+    print(obj)
     for key in obj:
         u = int(key)
         populations[u] = obj[key]["population"]
@@ -29,7 +30,7 @@ def load_city_graph(jsonString):
 
 def load_model(jsonString, disease):
     Q,u = load_city_graph(jsonString)
-    model = GraphWorld(Q, u, np.zeros(len(u)), disease, 1)
+    model = GraphWorld(Q, u, disease, 1)
     return model
 
 def listen(port, disease):
@@ -105,12 +106,4 @@ if __name__ == "__main__":
     l1,l2 = 0.5,0.1
     d = disease(l1,l2, 0.1, 0.001)
     server(6666, d)
-    """
-    model = listen(80, d)
-    model.nodes[0].current[1] = 2
-    gillespie(model, 0, t_max=365, max_iter=10**8)
-    
-    for node in model.nodes:
-        plot(node.history,[0,1])
-    plt.show()
-    """
+

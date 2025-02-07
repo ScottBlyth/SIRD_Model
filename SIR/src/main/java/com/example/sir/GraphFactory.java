@@ -1,42 +1,49 @@
 package com.example.sir;
 
+import javafx.scene.shape.Circle;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GraphFactory {
-    public Graph createGraph(String fileName) throws IOException, ParseException {
-        Graph graph = new Graph();
-        File file = new File(fileName);
-        if(file.exists()) {
-            Scanner reader = new Scanner(file);
-            StringBuilder text = new StringBuilder();
-            while(reader.hasNextLine()) {
-                text.append(reader.nextLine());
-            }
-            JSONParser parser = new JSONParser();
-            JSONObject object = (JSONObject) parser.parse(text.toString());
-            for(int i = 0; i < object.size(); i++){
-                graph.addNode();
-            }
-            for(String entry : (Set<String>) object.keySet()) {
-                Integer u = Integer.valueOf(entry);
-                JSONObject iObject = (JSONObject) object.get(entry);
-                JSONArray array = (JSONArray) iObject.get("neighbours");
-                for(Object obj : array) {
-                    JSONArray edge = (JSONArray) obj;
-                    // out vertex
-                    Integer v = (int) (long) edge.get(0);
-                    Float weight = (float) (double) edge.get(1);
-                    graph.addEdge(u, v, weight);
-                }
-            }
+    public void changePopulations(JSONObject data)  {
+        for (Object key : data.keySet()) {
 
+        }
+    }
+
+    public static Graph loadGraph(JSONObject jsonObject) {
+        Graph graph = new Graph();
+        Integer i = 0;
+        for(String key : (Set<String>) jsonObject.keySet()) {
+            JSONObject node = (JSONObject) jsonObject.get(key);
+            JSONArray population = (JSONArray) node.get("population");
+            List<Integer> integers = new ArrayList<>(population.size());
+            int j = 0;
+            for(Object obj : population) {
+                Long num = (long) obj;
+                integers.add(num.intValue());
+                j += 1;
+            }
+            graph.addNode();
+
+            graph.setPopulation(i, integers);
+            i++;
+        }
+        // adding the links/edges
+        for(String key : (Set<String>) jsonObject.keySet()) {
+            JSONObject node = (JSONObject) jsonObject.get(key);
+            JSONArray neighbours = (JSONArray) node.get("neighbours");
+            for(Object tuple : neighbours) {
+                JSONArray edge = (JSONArray) tuple;
+                Integer v = (int) (long) edge.get(0);
+                double weight = (double) edge.get(1);
+                graph.addEdge(Integer.parseInt(key), v, (float) weight);
+            }
         }
         return graph;
     }
