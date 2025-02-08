@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -24,6 +25,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class SIRController {
     @FXML
@@ -35,6 +37,16 @@ public class SIRController {
 
     @FXML
     private Text selectText;
+    @FXML
+    private ToggleButton T0;
+    @FXML
+    private ToggleButton T1;
+    @FXML
+    private ToggleButton T2;
+    @FXML
+    private ToggleButton T3;
+
+    private final List<String> toggleNames = Arrays.asList("S",  "I", "R", "D");
 
     private boolean selectedNode = false;
     private Integer vertexSelected = -1;
@@ -58,32 +70,42 @@ public class SIRController {
         }
     }
 
+    private void updatePopulations() {
+        GraphFactory.readPopulations(data, graph);
+    }
+
     private void plotData(int id) {
-        XYChart.Series<Number, Number> series = new XYChart.Series<>();
-        JSONArray points = (JSONArray) data.get(String.valueOf(id));
-        double startTime = 1;
-        for(Object array : points) {
-            JSONArray arr = (JSONArray) array;
-            double time;
-            try {
-                time = (double) arr.get(0);
-            }catch (Exception e) {
-                time = (double) (long) arr.get(0);
+        List<ToggleButton> toggles = Arrays.asList(T0, T1,T2,T3);
+        List<Integer> indices = new ArrayList<>(Stream.of(0, 1, 2, 3).filter(i -> toggles.get(i).isSelected()).toList());
+        for(Integer i : indices) {
+            XYChart.Series<Number, Number> series = new XYChart.Series<>();
+            JSONObject obj = (JSONObject) data.get(String.valueOf(id));
+            JSONArray points = (JSONArray) obj.get("points");
+            double startTime = 1;
+            for(Object array : points) {
+                JSONArray arr = (JSONArray) array;
+                double time;
+                try {
+                    time = (double) arr.get(0);
+                }catch (Exception e) {
+                    time = (double) (long) arr.get(0);
+                }
+                JSONArray point = (JSONArray) arr.get(1);
+                // let us just plot infections for now
+                if(startTime >= 1) {
+                    double infections = (double) point.get(i);
+                    series.getData().add(new XYChart.Data<>(time, infections));
+                    startTime = 0;
+                }
+                startTime += time;
             }
-            JSONArray point = (JSONArray) arr.get(1);
-            // let us just plot infections for now
-            if(startTime >= 1) {
-                double infections = (double) point.get(1);
-                series.getData().add(new XYChart.Data<>(time, infections));
-                startTime = 0;
+            if(series.getData().isEmpty()) {
+                continue;
             }
-            startTime += time;
+            series.setName(toggleNames.get(i)+": "+id);
+            epiChart.getData().add(series);
         }
-        if(series.getData().isEmpty()) {
-            return;
-        }
-        series.setName("City with id "+id);
-        epiChart.getData().add(series);
+
     }
 
     @FXML
@@ -158,10 +180,11 @@ public class SIRController {
 
     @FXML
     public void computeModel() {
-        PyListener listener = new PyListener(6666, "200", graph);
+        PyListener listener = new PyListener(6666, populationText.getText(), graph);
         Thread thread = new Thread(() -> {
             listener.run();
             data = listener.getData();
+            updatePopulations();
         });
         thread.start();
     }
@@ -219,9 +242,13 @@ public class SIRController {
         for(Circle circle : circles) {
             positions.add(new Tuple<>(circle.getCenterX(), circle.getCenterY()));
         }
-        FileWriter writer = new FileWriter("map.json");
-        writer.write(graph.toJson(positions).toJSONString());
-        writer.close();
+        JFileChooser chooser = new JFileChooser(".");
+        int returnVal = chooser.showOpenDialog(null);
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+            FileWriter writer = new FileWriter(chooser.getSelectedFile().getPath());
+            writer.write(graph.toJson(positions).toJSONString());
+            writer.close();
+        }
     }
 
     @FXML

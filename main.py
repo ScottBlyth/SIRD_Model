@@ -68,13 +68,13 @@ def server(port, d):
         print("Model finished exceution...")
         points = {}
         for node in model.nodes:
-            points[str(node.id)] = []
+            points[str(node.id)] = {"population" : list(node.current), "points" : []}
             if node.history is None:
                 continue
             for p in node.history:
                 p_ = list(p)
                 p_[1] = list(p[1])
-                points[str(node.id)].append(p_)
+                points[str(node.id)]["points"].append(p_)
         string = json.dumps(points)
 
         c.send(string.encode("utf-8"))
@@ -103,6 +103,6 @@ def plot(history, indices=None):
         
 if __name__ == "__main__":
     l1,l2 = 0.5,0.1
-    d = disease(l1,l2, 0.1, 0.001)
+    d = disease(l1,l2, 0.1, 0.01)
     server(6666, d)
 

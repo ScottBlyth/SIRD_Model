@@ -1,18 +1,23 @@
 package com.example.sir;
 
-import javafx.scene.shape.Circle;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 
-import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GraphFactory {
-    public void changePopulations(JSONObject data)  {
-        for (Object key : data.keySet()) {
 
+    public static void readPopulations(JSONObject data, Graph graph) {
+        for(Object obj : data.keySet()) {
+            String key = (String) obj;
+            Integer u = Integer.parseInt(key);
+            JSONArray population =  (JSONArray) ((JSONObject) data.get(key)).get("population");
+            List<Integer> integers = new ArrayList<>(population.size());
+            for(Object number : population) {
+                Double num = (double) number;
+                integers.add((int) num.longValue());
+            }
+            graph.setPopulation(u, integers);
         }
     }
 
