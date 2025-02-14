@@ -42,4 +42,3 @@ def numpy_iterations(Q, u):
         update = np.random.multinomial(u[i], Q[i])
         u_next += update
     return u_next
-        

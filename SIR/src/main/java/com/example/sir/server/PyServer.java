@@ -1,11 +1,13 @@
 package com.example.sir.server;
 
 import com.example.sir.Graph;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 
 public class PyServer implements Runnable {
 
@@ -15,10 +17,12 @@ public class PyServer implements Runnable {
     private DataOutputStream out;
     private final Graph graph;
     private boolean toClose = false;
+    private List<Double> disease;
 
-    public PyServer(int port, Graph graph) {
+    public PyServer(int port, Graph graph, List<Double> disease) {
         this.port = port;
         this.graph = graph;
+        this.disease = disease;
     }
 
     public void close() throws IOException {
@@ -29,6 +33,9 @@ public class PyServer implements Runnable {
 
     private void sendJsonObject() throws IOException {
         JSONObject obj = graph.toJson();
+        JSONArray dObj = new JSONArray();
+        dObj.addAll(this.disease);
+        obj.put("disease", dObj);
         out.writeUTF(obj.toJSONString());
         out.flush();
     }

@@ -33,7 +33,7 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
     while t<t_max and i <= max_iter:
         events,event_consequences = y.get_events()
         p = propensities(t, p_n, events=events)
-        if all_zeros(p):
+        if all_zeros(p): 
             return
         p_rel = p/sum(p)
         tte = [time_to_event(p[i]) for i in range(len(p))]
@@ -48,6 +48,14 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
         i += 1
 
 time_to_event = lambda p: (-1/p)*np.log(np.random.random())
+
+"""
+def time_to_event(p):
+    e =  (-1/p)*np.log(np.random.random()) 
+    if e < float('inf'):
+        return e
+    return 0
+"""
 
 def propensities(t, p_n, events):
     e_ = []
@@ -114,7 +122,7 @@ class Country:
         self.id = id
         self.history = None
         self.times = [0]
-        self.plot = plot
+        self.plot = True
         self.closed_borders = False 
         self.lockdown = lockdown # will this country go into lockdown or not?
         self.lockdown_factor = 1

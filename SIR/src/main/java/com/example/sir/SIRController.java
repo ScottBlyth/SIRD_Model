@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
@@ -45,6 +46,15 @@ public class SIRController {
     private ToggleButton T2;
     @FXML
     private ToggleButton T3;
+
+    @FXML
+    private TextField infectivity;
+    @FXML
+    private TextField recovery;
+    @FXML
+    private TextField mortality;
+    @FXML
+    private TextField immunity;
 
     private final List<String> toggleNames = Arrays.asList("S",  "I", "R", "D");
 
@@ -180,7 +190,8 @@ public class SIRController {
 
     @FXML
     public void computeModel() {
-        PyListener listener = new PyListener(6666, populationText.getText(), graph);
+        List<Double> params = Stream.of(infectivity.getText(), recovery.getText(), mortality.getText(), immunity.getText()).map(Double::parseDouble).toList();
+        PyListener listener = new PyListener(6666, populationText.getText(), graph, params);
         Thread thread = new Thread(() -> {
             listener.run();
             data = listener.getData();

@@ -1,12 +1,14 @@
 package com.example.sir.server;
 
 import com.example.sir.Graph;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.List;
 
 public class PyListener implements Runnable {
 
@@ -15,11 +17,13 @@ public class PyListener implements Runnable {
     private final String time;
     private JSONObject data;
     private final Graph graph;
+    private List<Double> disease;
 
-    public PyListener(int port, String time, Graph graph) {
+    public PyListener(int port, String time, Graph graph, List<Double> disease) {
         this.port = port;
         this.time = time;
         this.graph = graph;
+        this.disease = disease;
     }
 
     public JSONObject getData() {
@@ -32,7 +36,13 @@ public class PyListener implements Runnable {
             // requests data
             socket = new Socket("localhost", port);
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            out.writeUTF("num"+ time +graph.toJson().toJSONString());
+
+            JSONObject obj = graph.toJson();
+            JSONArray dObj = new JSONArray();
+            dObj.addAll(this.disease);
+            obj.put("disease", dObj);
+
+            out.writeUTF("num"+ time +obj.toJSONString());
             out.flush();
 
             System.out.println("Sent Request!");

@@ -40,6 +40,18 @@
   -fx-background-color: #00bfff;
 }
 
+.diseasesParams {
+    -fx-font-size: 20;
+    -fx-border-size:  1;
+    -fx-border-color: black;
+    -fx-background-color: #00bfff;
+}
+
+.smallArea {
+     -fx-font-size: 20;
+     -fx-fill: #93a6c4;
+}
+
 .chart-series-line {
     -fx-stroke-width: 2px;
     -fx-effect: null;

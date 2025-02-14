@@ -12,24 +12,28 @@ from disease import disease
 from matplotlib import pyplot as plt
 import socket
 import regex
-import json
 
 def load_city_graph(jsonString):
     obj = json.loads(jsonString)
-    n = len(obj)
+    n = len(obj)-1
     Q = np.zeros((n,n))
     populations = np.zeros((n,4))
+    d = obj["disease"]
     for key in obj:
+        if key == "disease":
+            continue
         u = int(key)
         populations[u] = obj[key]["population"]
         for v,weight in obj[key]["neighbours"]:
             Q[u][v] = weight  
         Q[u,u] = 1-np.sum(Q[u, np.arange(n)!=u])
-    return Q,populations
+    return Q,populations,d
 
-def load_model(jsonString, disease):
-    Q,u = load_city_graph(jsonString)
-    model = GraphWorld(Q, u, disease, 1)
+def load_model(jsonString):
+    Q,u,d = load_city_graph(jsonString)
+    l1,l2,l3,l4 = d
+    d = disease(l1,l2, l3,l4)
+    model = GraphWorld(Q, u, d, 1)
     return model
 
 def listen(port, disease):
@@ -44,7 +48,7 @@ def listen(port, disease):
     data = data[idx.start():idx.end()+1]
     return load_model(data, disease)
 
-def server(port, d):
+def server(port):
     s = socket.socket()  
     s.bind(('localhost', port))    
     print("server started...")
@@ -60,7 +64,7 @@ def server(port, d):
         
         idx = regex.search("{.*}$", data)
         obj = data[idx.start():idx.end()+1]
-        model = load_model(obj, d)
+        model = load_model(obj)
         
         model.nodes[0].current[1] = 2
         
@@ -76,13 +80,11 @@ def server(port, d):
                 p_[1] = list(p[1])
                 points[str(node.id)]["points"].append(p_)
         string = json.dumps(points)
-
         c.send(string.encode("utf-8"))
         print("Sent!")
         c.close()
     s.close()
         
-    
 
 def get_time(history):
     return [t for t,points in history]
@@ -104,5 +106,5 @@ def plot(history, indices=None):
 if __name__ == "__main__":
     l1,l2 = 0.5,0.1
     d = disease(l1,l2, 0.1, 0.01)
-    server(6666, d)
+    server(6666)
 
