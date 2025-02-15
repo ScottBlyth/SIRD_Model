@@ -82,27 +82,13 @@ public class SIRController {
                 populationText.ChangePopulation(vertexSelected);
             }
         });
+        List<TextField> fields = Arrays.asList(infectivity, recovery, mortality, immunity);
+        fields.forEach(x -> x.textProperty().addListener((obs, old, new_text) -> {
+            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
+                x.setText(old);
+            }
+        }));
 
-        infectivity.textProperty().addListener((obs, old, new_text) -> {
-            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
-                infectivity.setText(old);
-            }
-        });
-        recovery.textProperty().addListener((obs, old, new_text) -> {
-            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
-                recovery.setText(old);
-            }
-        });
-        mortality.textProperty().addListener((obs, old, new_text) -> {
-            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
-                mortality.setText(old);
-            }
-        });
-        immunity.textProperty().addListener((obs, old, new_text) -> {
-            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
-                immunity.setText(old);
-            }
-        });
     }
 
     @FXML
