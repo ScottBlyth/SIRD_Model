@@ -17,23 +17,13 @@ public class TextFieldClass extends javafx.scene.control.TextField  {
         return text;
     }
 
-    public void readText() {
-        if(getText().matches("\\d+\\.?\\d*")) {
-            System.out.println("matched!");
-            text = getText();
-        }else {
-            setText(text);
-        }
-    }
-
-
     public void ChangePopulation(Integer circleID) {
-        graph.setPopulation(circleID, Arrays.asList(Integer.parseInt(getParsedText()), 0, 0, 0));
+        graph.setPopulation(circleID, Arrays.asList(Integer.parseInt(getText()), 0, 0, 0));
         System.out.println(graph.getPopulation(circleID));
     }
     public void changeWeight(Integer u, Integer v) {
         try {
-            graph.changeWeight(u, v, Float.parseFloat(getParsedText()));
+            graph.changeWeight(u, v, Float.parseFloat(getText()));
         }catch (Exception e){
 
         }
@@ -41,7 +31,7 @@ public class TextFieldClass extends javafx.scene.control.TextField  {
         try {
             System.out.println(graph.getWeight(u,v));
         } catch (Exception e) {
-            System.out.println(graph.toJson().toJSONString());
+            throw new RuntimeException(e);
         }
 
     }

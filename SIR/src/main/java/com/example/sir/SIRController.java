@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
@@ -60,6 +61,7 @@ public class SIRController {
 
     private boolean selectedNode = false;
     private Integer vertexSelected = -1;
+    private Integer currentSelected = -1;
     private Circle nodeSelected;
     private Graph graph = new Graph();
     private List<Circle> circles = new ArrayList<>();
@@ -73,18 +75,21 @@ public class SIRController {
         populationText.setGraph(graph);
 
         populationText.textProperty().addListener((obs, old, new_text) -> {
-            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
+            System.out.println("selected: "+vertexSelected);
+            if(!new_text.matches("^$|\\d+\\.?\\d*")) {
                 populationText.setText(old);
+            }
+            if(mode == Mode.EDIT_EDGES) {
+                populationText.changeWeight(vertexSelected, currentSelected);
             }
             if(mode == Mode.EDIT_NODE) {
                 //vertexSelected
-                populationText.readText();
-                populationText.ChangePopulation(vertexSelected);
+                populationText.ChangePopulation(currentSelected);
             }
         });
         List<TextField> fields = Arrays.asList(infectivity, recovery, mortality, immunity);
         fields.forEach(x -> x.textProperty().addListener((obs, old, new_text) -> {
-            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
+            if(!new_text.matches("^$|\\d+\\.?\\d*")) {
                 x.setText(old);
             }
         }));
@@ -157,12 +162,14 @@ public class SIRController {
         Circle circle = new Circle(x, y, 25);
         circle.setId("C"+circleID);
         circle.setOnMouseClicked(mouseEvent1 -> {
+            vertexSelected = currentSelected;
+            currentSelected = circleID;
             if(mode == Mode.PLOT) {
                 plotData(circleID);
             }
             if(selectedNode){
                 if(vertexSelected == circleID) {
-                    resetSelection();
+                   // resetSelection();
                 }else {
                     if(mode == Mode.LINK) {
                         addLink(nodeSelected, circle);
@@ -170,7 +177,9 @@ public class SIRController {
 
                         graph.addEdge(vertexSelected, circleID, 0.01f);
                         graph.addEdge(circleID, vertexSelected, 0.01f);
+
                         // deselect everything
+                      //  resetSelection();
                     } else if (mode == Mode.EDIT_EDGES) {
                         int v = vertexSelected;
                         selectText.setText(v+","+circleID);
@@ -180,7 +189,6 @@ public class SIRController {
                             throw new RuntimeException(e);
                         }
                     }
-                    resetSelection();
                 }
                 // else selected node
             }else {
@@ -191,11 +199,7 @@ public class SIRController {
             }
             if(mode == Mode.EDIT_NODE) {
                 populationText.setText(graph.getPopulation(circleID).toString());
-                vertexSelected = circleID;
-                populationText.setOnKeyPressed(keyEvent -> {
-                        populationText.readText();
-                        populationText.ChangePopulation(circleID);
-                });
+                currentSelected = circleID;
             }
 
         });
@@ -207,6 +211,12 @@ public class SIRController {
 
     @FXML
     public void computeModel() {
+        if(populationText.getText().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setContentText("Cannot determine time of execution: empty field");
+            alert.showAndWait();
+            return;
+        }
         List<Double> params = Stream.of(infectivity.getText(), recovery.getText(), mortality.getText(), immunity.getText()).map(Double::parseDouble).toList();
         PyListener listener = new PyListener(6666, populationText.getText(), graph, params);
         Thread thread = new Thread(() -> {
@@ -327,6 +337,8 @@ public class SIRController {
     }
 
     private void resetSelection() {
+        return;
+        /*
         if(!selectedNode) {
             return;
         }
@@ -334,6 +346,7 @@ public class SIRController {
         vertexSelected=-1;
         nodeSelected.setFill(Paint.valueOf("rgba(0,0,0,0)"));
         nodeSelected = null;
+        */
     }
 
     private Line createLine(double sx, double sy, double ex, double ey, double r) {
