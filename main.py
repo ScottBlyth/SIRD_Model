@@ -26,6 +26,7 @@ def load_city_graph(jsonString):
         populations[u] = obj[key]["population"]
         for v,weight in obj[key]["neighbours"]:
             Q[u][v] = weight  
+    for u in range(n):
         Q[u,u] = 1-np.sum(Q[u, np.arange(n)!=u])
     return Q,populations,d
 

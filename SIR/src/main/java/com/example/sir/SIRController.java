@@ -71,6 +71,38 @@ public class SIRController {
     public void initialize() {
         epiChart.setCreateSymbols(false);
         populationText.setGraph(graph);
+
+        populationText.textProperty().addListener((obs, old, new_text) -> {
+            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
+                populationText.setText(old);
+            }
+            if(mode == Mode.EDIT_NODE) {
+                //vertexSelected
+                populationText.readText();
+                populationText.ChangePopulation(vertexSelected);
+            }
+        });
+
+        infectivity.textProperty().addListener((obs, old, new_text) -> {
+            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
+                infectivity.setText(old);
+            }
+        });
+        recovery.textProperty().addListener((obs, old, new_text) -> {
+            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
+                recovery.setText(old);
+            }
+        });
+        mortality.textProperty().addListener((obs, old, new_text) -> {
+            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
+                mortality.setText(old);
+            }
+        });
+        immunity.textProperty().addListener((obs, old, new_text) -> {
+            if(!new_text.matches("\\d+\\.?\\d*|^$")) {
+                immunity.setText(old);
+            }
+        });
     }
 
     @FXML
@@ -161,9 +193,6 @@ public class SIRController {
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
-                        populationText.setOnKeyPressed(keyEvent -> {
-                                populationText.changeWeight(v,  circleID);
-                        });
                     }
                     resetSelection();
                 }
@@ -176,7 +205,9 @@ public class SIRController {
             }
             if(mode == Mode.EDIT_NODE) {
                 populationText.setText(graph.getPopulation(circleID).toString());
+                vertexSelected = circleID;
                 populationText.setOnKeyPressed(keyEvent -> {
+                        populationText.readText();
                         populationText.ChangePopulation(circleID);
                 });
             }

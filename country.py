@@ -28,7 +28,6 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
     i = 0
     events,event_consequences = y.get_events() 
     p_n = len(events)
-    day_passed = False
     t_ = 1
     while t<t_max and i <= max_iter:
         events,event_consequences = y.get_events()
@@ -43,19 +42,11 @@ def gillespie(Y0, t0, t_max=100, max_iter=10**4):
         dt = min(dt, 1)
         t += dt    
         if t > t_: 
-            y.immigration()
+            y.immigration(t)
             t_ += 1
         i += 1
 
 time_to_event = lambda p: (-1/p)*np.log(np.random.random())
-
-"""
-def time_to_event(p):
-    e =  (-1/p)*np.log(np.random.random()) 
-    if e < float('inf'):
-        return e
-    return 0
-"""
 
 def propensities(t, p_n, events):
     e_ = []
@@ -94,7 +85,7 @@ class GraphWorld:
         self.events = events
         return props,events
     
-    def immigration(self):
+    def immigration(self, t):
         # susceptible
         u_s = np.array([c.current[0] for c in self.nodes])
         u_i = np.array([c.current[1] for c in self.nodes])
@@ -103,6 +94,7 @@ class GraphWorld:
         next_u_i = numpy_iterations(self.Q, u_i)
         next_u_r = numpy_iterations(self.Q, u_r)
         for c in self.nodes:
+            c.update_history(t)
             c.current[0] = next_u_s[c.id]
             c.current[1] = next_u_i[c.id]
             c.current[2] = next_u_r[c.id]
@@ -134,6 +126,13 @@ class Country:
     
     def get_info(self): 
         return np.copy(self.current)
+    
+    def update_history(self, t):
+        if self.history is None:
+            self.history = [[t, self.get_info()]]
+            return
+        event = [t, self.get_info()]
+        self.history += [event]
         
     # connects this country to the given country
     # the propensity to move from this country to another 
@@ -161,11 +160,7 @@ class Country:
         # save this change
         if self.plot:
             self.times.append(t)
-            if self.history is None:
-                self.history = [[t, self.get_info()]]
-                return
-            event = [t, self.get_info()]
-            self.history += [event]
+            self.update_history(t)
       
     # moves person from this country in the self.current[SIRD_index] box
     # to self.neighbours[neighbour] country - travelling mechanic

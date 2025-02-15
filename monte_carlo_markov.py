@@ -35,6 +35,8 @@ def stochastic_iteration(Q, u, k=2):
     u_next += update.astype('int32') 
     return abs(u_next)
 
+
+
 def numpy_iterations(Q, u):
     n = Q.shape[0]
     u_next = np.zeros(n)
