@@ -12,12 +12,11 @@ import java.util.List;
 
 public class PyListener implements Runnable {
 
-    private Socket socket;
     private final int port;
     private final String time;
     private JSONObject data;
     private final Graph graph;
-    private List<Double> disease;
+    private final List<Double> disease;
 
     public PyListener(int port, String time, Graph graph, List<Double> disease) {
         this.port = port;
@@ -34,7 +33,7 @@ public class PyListener implements Runnable {
     public void run() {
         try {
             // requests data
-            socket = new Socket("localhost", port);
+            Socket socket = new Socket("localhost", port);
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 
             JSONObject obj = graph.toJson();

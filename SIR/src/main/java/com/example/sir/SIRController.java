@@ -63,6 +63,7 @@ public class SIRController {
     private Integer vertexSelected = -1;
     private Integer currentSelected = -1;
     private Circle nodeSelected;
+    private Circle currentNode;
     private Graph graph = new Graph();
     private List<Circle> circles = new ArrayList<>();
 
@@ -168,26 +169,22 @@ public class SIRController {
                 plotData(circleID);
             }
             if(selectedNode){
-                if(vertexSelected == circleID) {
-                   // resetSelection();
-                }else {
-                    if(mode == Mode.LINK) {
-                        addLink(nodeSelected, circle);
-                        addLink(nodeSelected, circle);
+                if(mode == Mode.LINK) {
+                    addLink(nodeSelected, circle);
+                    addLink(circle, nodeSelected);
 
-                        graph.addEdge(vertexSelected, circleID, 0.01f);
-                        graph.addEdge(circleID, vertexSelected, 0.01f);
+                    graph.addEdge(vertexSelected, circleID, 0.01f);
+                    graph.addEdge(circleID, vertexSelected, 0.01f);
 
-                        // deselect everything
-                      //  resetSelection();
-                    } else if (mode == Mode.EDIT_EDGES) {
-                        int v = vertexSelected;
-                        selectText.setText(v+","+circleID);
-                        try {
-                            populationText.setText(graph.getWeight(vertexSelected, circleID).toString());
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
+                    // deselect everything
+                    resetSelection();
+                } else if (mode == Mode.EDIT_EDGES) {
+                    int v = vertexSelected;
+                    selectText.setText(v+","+circleID);
+                    try {
+                        populationText.setText(graph.getWeight(vertexSelected, circleID).toString());
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
                 }
                 // else selected node
@@ -337,16 +334,14 @@ public class SIRController {
     }
 
     private void resetSelection() {
-        return;
-        /*
         if(!selectedNode) {
             return;
         }
         selectedNode = false;
         vertexSelected=-1;
+        currentSelected = -1;
         nodeSelected.setFill(Paint.valueOf("rgba(0,0,0,0)"));
         nodeSelected = null;
-        */
     }
 
     private Line createLine(double sx, double sy, double ex, double ey, double r) {
