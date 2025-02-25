@@ -9,7 +9,6 @@ import  json
 import numpy as np
 from country import GraphWorld, gillespie
 from disease import disease
-from matplotlib import pyplot as plt
 import socket
 import regex
 
@@ -56,34 +55,35 @@ def server(port):
     s.listen(5)
     
     while True:
-        c, addr = s.accept()
-        print("Client Accepted!")
-        data = c.recv(1024).decode(errors='ignore')
-        print("Received model state...")
-        idx = regex.search(r"num\d+", data)
-        time = int(data[idx.start()+3:idx.end()])
-        
-        idx = regex.search("{.*}$", data)
-        obj = data[idx.start():idx.end()+1]
-        model = load_model(obj)
-        
-        model.nodes[0].current[1] = 2
-        
-        gillespie(model, 0, t_max=time, max_iter=10**8)
-        print("Model finished exceution...")
-        points = {}
-        for node in model.nodes:
-            points[str(node.id)] = {"population" : list(node.current), "points" : []}
-            if node.history is None:
-                continue
-            for p in node.history:
-                p_ = list(p)
-                p_[1] = list(p[1])
-                points[str(node.id)]["points"].append(p_)
-        string = json.dumps(points)
-        c.send(string.encode("utf-8"))
-        print("Sent!")
-        c.close()
+        try:
+            c, addr = s.accept()
+            print("Client Accepted!")
+            data = c.recv(4096).decode(errors='ignore')
+            print("Received model state...")
+            idx = regex.search(r"num\d+", data)
+            time = int(data[idx.start()+3:idx.end()])
+            
+            idx = regex.search("{.*}$", data)
+            obj = data[idx.start():idx.end()+1]
+            model = load_model(obj)
+            
+            gillespie(model, 0, t_max=time, max_iter=10**8)
+            print("Model finished exceution...")
+            points = {}
+            for node in model.nodes:
+                points[str(node.id)] = {"population" : list(node.current), "points" : []}
+                if node.history is None:
+                    continue
+                for p in node.history:
+                    p_ = list(p)
+                    p_[1] = list(p[1])
+                    points[str(node.id)]["points"].append(p_)
+            string = json.dumps(points)
+            c.send(string.encode("utf-8"))
+            c.close()
+            print("Sent!")
+        except Exception as e:
+            print(str(e))
     s.close()
         
 
@@ -92,16 +92,6 @@ def get_time(history):
 
 def get_ith(history, i):
     return [points[i] for t,points in history]
-
-def plot(history, indices=None):
-    if history is None:
-        return
-    if indices is None:
-        indices = range(4)
-    t = get_time(history)
-    for i in indices:
-        plt.plot(t, get_ith(history, i))
-    
 
         
 if __name__ == "__main__":

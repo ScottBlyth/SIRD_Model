@@ -39,10 +39,18 @@ public class Graph {
         return populations.get(u).get(0);
     }
 
+    public List<Integer> getPopulations(Integer u) {
+        return populations.get(u);
+    }
+
     public void setPopulation(Integer u, List<Integer> population) {
         for(int i = 0; i < population.size(); i++) {
             populations.get(u).set(i, population.get(i));
         }
+    }
+
+    public void setPopulation(Integer u, Integer index, Integer number) {
+        populations.get(u).set(index, number);
     }
 
     public void changeWeight(Integer u, Integer v, Float weight) {

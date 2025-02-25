@@ -2,21 +2,23 @@ package com.example.sir;
 
 
 import com.example.sir.server.PyListener;
-import com.example.sir.server.PyServer;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -24,9 +26,11 @@ import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class SIRController {
@@ -63,7 +67,6 @@ public class SIRController {
     private Integer vertexSelected = -1;
     private Integer currentSelected = -1;
     private Circle nodeSelected;
-    private Circle currentNode;
     private Graph graph = new Graph();
     private List<Circle> circles = new ArrayList<>();
 
@@ -95,6 +98,33 @@ public class SIRController {
             }
         }));
 
+    }
+
+    private void addParamBox(int u) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("parameter-box.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+
+            List<String> fieldNames = Arrays.asList("#susceptible", "#infected",
+                    "#recovered", "#dead");
+            int i = 0;
+            for(String s : fieldNames) {
+                TextField field = (TextField) stage.getScene().lookup(s);
+                int finalI = i;
+                field.setText(String.valueOf(graph.getPopulations(u).get(i)));
+                field.textProperty().addListener((obs, old, new_text) -> {
+                    graph.setPopulation(u, finalI, Integer.parseInt(new_text));
+                });
+                i++;
+            }
+
+            stage.show();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     @FXML
@@ -195,6 +225,7 @@ public class SIRController {
                 circle.setFill(Paint.valueOf("black"));
             }
             if(mode == Mode.EDIT_NODE) {
+                addParamBox(circleID);
                 populationText.setText(graph.getPopulation(circleID).toString());
                 currentSelected = circleID;
             }
@@ -209,7 +240,7 @@ public class SIRController {
     @FXML
     public void computeModel() {
         if(populationText.getText().isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Cannot determine time of execution: empty field");
             alert.showAndWait();
             return;
@@ -365,4 +396,5 @@ public class SIRController {
         line.setId("link");
         return line;
     }
+
 }
