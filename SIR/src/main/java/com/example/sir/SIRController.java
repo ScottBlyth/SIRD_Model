@@ -79,16 +79,11 @@ public class SIRController {
         populationText.setGraph(graph);
 
         populationText.textProperty().addListener((obs, old, new_text) -> {
-            System.out.println("selected: "+vertexSelected);
             if(!new_text.matches("^$|\\d+\\.?\\d*")) {
                 populationText.setText(old);
             }
             if(mode == Mode.EDIT_EDGES) {
                 populationText.changeWeight(vertexSelected, currentSelected);
-            }
-            if(mode == Mode.EDIT_NODE) {
-                //vertexSelected
-                populationText.ChangePopulation(currentSelected);
             }
         });
         List<TextField> fields = Arrays.asList(infectivity, recovery, mortality, immunity);
