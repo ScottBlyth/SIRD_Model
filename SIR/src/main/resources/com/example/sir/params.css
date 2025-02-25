@@ -1,0 +1,15 @@
+
+.paramBox {
+    -fx-background-color:  #9b9b9b;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 10, 0, 0, 0);
+}
+
+.field {
+    -fx-background-color:  #9d6ceb;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 10, 0, 0, 0);
+}
+
+.fieldTitle {
+    -fx-font-color: #b1b1b1;
+    -fx-font-size: 25;
+}
