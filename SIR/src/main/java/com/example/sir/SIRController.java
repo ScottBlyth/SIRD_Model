@@ -7,27 +7,35 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -140,7 +148,8 @@ public class SIRController {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
             JSONObject obj = (JSONObject) data.get(String.valueOf(id));
             JSONArray points = (JSONArray) obj.get("points");
-            double startTime = 1;
+           // double startTime =  (double) (long) ((JSONArray) ((JSONArray) obj.get("points")).get(0)).get(0);
+            double startTime = 0;
             for(Object array : points) {
                 JSONArray arr = (JSONArray) array;
                 double time;
@@ -168,6 +177,34 @@ public class SIRController {
     }
 
     @FXML
+    public void setBackgroundImage() {
+        JFileChooser chooser = new JFileChooser(".");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("png,jpg","png", "jpg");
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showOpenDialog(null);
+        if(returnVal == JFileChooser.ERROR_OPTION) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Could not load file");
+            alert.showAndWait();
+            return;
+        }
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+            String path = chooser.getSelectedFile().getPath();
+            // now read file
+            File file = new File(path);
+            int width = (int) Math.ceil(cityGraph.getWidth());
+            int height = (int) Math.ceil(cityGraph.getHeight());
+            Image image = new Image(file.toURI().toString(), width, height, false, true);
+
+            BackgroundImage backgroundImage = new BackgroundImage(image,
+                    BackgroundRepeat.REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT,
+                    BackgroundSize.DEFAULT);
+            cityGraph.setBackground(new Background(backgroundImage));
+
+        }
+    }
+
+    @FXML
     public void setPlot() {
         mode = Mode.PLOT;
     }
@@ -178,9 +215,8 @@ public class SIRController {
         int returnVal = chooser.showOpenDialog(null);
         String path = chooser.getSelectedFile().getPath();
 
-        FileWriter writer = new FileWriter(path);
-        writer.write(data.toJSONString());
-        writer.close();
+        epiChart.applyCss();
+        WritableImage wi = epiChart.snapshot(new SnapshotParameters(), new WritableImage(800*5, 600*5));
 
     }
 
@@ -241,7 +277,9 @@ public class SIRController {
             return;
         }
         List<Double> params = Stream.of(infectivity.getText(), recovery.getText(), mortality.getText(), immunity.getText()).map(Double::parseDouble).toList();
-        PyListener listener = new PyListener(6666, populationText.getText(), graph, params);
+        double time = 0;
+        
+        PyListener listener = new PyListener(6666, populationText.getText(), graph, params, time);
         Thread thread = new Thread(() -> {
             listener.run();
             data = listener.getData();

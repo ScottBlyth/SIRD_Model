@@ -12,14 +12,13 @@ from disease import disease
 import socket
 import regex
 
-def load_city_graph(jsonString):
-    obj = json.loads(jsonString)
-    n = len(obj)-1
+def load_city_graph(obj):
+    n = len(obj)-2
     Q = np.zeros((n,n))
     populations = np.zeros((n,4))
     d = obj["disease"]
     for key in obj:
-        if key == "disease":
+        if key in ["time", "disease"]:
             continue
         u = int(key)
         populations[u] = obj[key]["population"]
@@ -29,8 +28,8 @@ def load_city_graph(jsonString):
         Q[u,u] = 1-np.sum(Q[u, np.arange(n)!=u])
     return Q,populations,d
 
-def load_model(jsonString):
-    Q,u,d = load_city_graph(jsonString)
+def load_model(obj):
+    Q,u,d = load_city_graph(obj)
     l1,l2,l3,l4 = d
     d = disease(l1,l2, l3,l4)
     model = GraphWorld(Q, u, d, 1)
@@ -64,10 +63,10 @@ def server(port):
             time = int(data[idx.start()+3:idx.end()])
             
             idx = regex.search("{.*}$", data)
-            obj = data[idx.start():idx.end()+1]
+            obj = json.loads(data[idx.start():idx.end()+1])
             model = load_model(obj)
-            
-            gillespie(model, 0, t_max=time, max_iter=10**8)
+            print(obj["time"])
+            gillespie(model, float(obj["time"]), t_max=time, max_iter=10**8)
             print("Model finished exceution...")
             points = {}
             for node in model.nodes:

@@ -17,12 +17,14 @@ public class PyListener implements Runnable {
     private JSONObject data;
     private final Graph graph;
     private final List<Double> disease;
+    private final double startTime;
 
-    public PyListener(int port, String time, Graph graph, List<Double> disease) {
+    public PyListener(int port, String time, Graph graph, List<Double> disease, double startTime) {
         this.port = port;
         this.time = time;
         this.graph = graph;
         this.disease = disease;
+        this.startTime = startTime;
     }
 
     public JSONObject getData() {
@@ -40,6 +42,7 @@ public class PyListener implements Runnable {
             JSONArray dObj = new JSONArray();
             dObj.addAll(this.disease);
             obj.put("disease", dObj);
+            obj.put("time", this.startTime);
 
             out.writeUTF("num"+ time +obj.toJSONString());
             out.flush();
